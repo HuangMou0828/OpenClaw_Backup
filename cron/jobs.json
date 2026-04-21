@@ -42,16 +42,16 @@
     },
     "state": {
       "nextRunAtMs": 1776798000000,
-      "lastRunAtMs": 1776758587587,
+      "lastRunAtMs": 1776779976842,
       "lastRunStatus": "ok",
       "lastStatus": "ok",
-      "lastDurationMs": 10250,
-      "lastDeliveryStatus": "delivered",
+      "lastDurationMs": 15161,
+      "lastDeliveryStatus": "not-delivered",
       "consecutiveErrors": 0,
-      "lastDelivered": true
+      "lastDelivered": false
     },
     "sessionTarget": "isolated",
-    "updatedAtMs": 1776779817204,
+    "updatedAtMs": 1776779992003,
     "delivery": {
       "mode": "none",
       "channel": "feishu",
@@ -67,17 +67,17 @@
     "description": "myLocalRAG L5 健康巡检，每天 09:00 检查服务状态、vault lint 和 promotion queue。只读操作，不写入任何数据。",
     "enabled": true,
     "createdAtMs": 1775981687126,
-    "updatedAtMs": 1776769732584,
+    "updatedAtMs": 1776780052996,
     "schedule": {
       "expr": "0 9 * * *",
       "kind": "cron",
       "tz": "Asia/Shanghai"
     },
-    "sessionTarget": "current",
+    "sessionTarget": "isolated",
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "你是 myLocalRAG 的 L5 健康巡检助手。\n\n第一步：检查 3030 服务状态。如果 `lsof -i :3030` 无输出，则运行 `cd ~/myLocalRAG/server && node index.mjs &` 启动服务，等待 3 秒后再继续。\n\n第二步：按顺序调用：\n1. GET http://127.0.0.1:3030/api/health\n2. GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0\n\n第三步：根据 API 结果，直接输出巡检报告文本。不要调用任何飞书消息发送工具，announce delivery 会自动推送。\n\n输出格式：\n# myLocalRAG L5 健康巡检\n\n日期：{{今天日期}}\n\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n\n如果 health.ok != true，输出「⚠️ 服务不健康，请检查」并列出具体问题。",
+      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警，正常时静默。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若空，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n- 直接输出巡检报告文本（announce delivery 自动推送）\n- 格式：\n  # myLocalRAG L5 健康巡检\n  日期：{{今天日期}}\n  ## 服务状态\n  - 状态：{{health.ok}}\n  - workspace：{{health.workspace}}\n  ## Promotion Queue\n  - 待处理：{{queue.approvedSyntheses.length}}\n  - 进行中：{{queue.pendingSynthesis.length}}\n  - 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n- 长度 ≤ 300 字\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，只输出「NO_REPLY」并结束，不调用任何发送工具",
       "timeoutSeconds": 300
     },
     "delivery": {
