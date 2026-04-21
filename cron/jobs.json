@@ -217,21 +217,21 @@
     "description": "OpenClaw inbox 导入兜底任务（18:00），消费 ~/.openclaw/knowledge/inbox",
     "enabled": true,
     "createdAtMs": 1775981693565,
-    "updatedAtMs": 1776769877142,
+    "updatedAtMs": 1776776081937,
     "schedule": {
       "expr": "0 18 * * *",
       "kind": "cron",
       "tz": "Asia/Shanghai"
     },
-    "sessionTarget": "current",
+    "sessionTarget": "isolated",
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "请执行以下任务：\n1. 运行 `python3 /Users/hm/.openclaw/workspace/scripts/mylocalrag-inbox-import.py`\n2. 脚本输出的 JSON 中 `message` 字段就是最终消息文本（纯文本，无 JSON 结构）\n3. 通过飞书消息工具发送给黄谋：action=send, channel=feishu, target=user:ou_3c3ad01561a915fe50731a0d71965963, msg_type=text, content={\"text\":\"消息文本\"}（将 message 字段的值套入 text 结构）\n4. 发完后只输出「✅ inbox 导入已完成」，不要其他内容，announce 会自动推送这条消息",
+      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，汇总结果发给黄谋。\n\n[数据]\n1. 检查 3030 服务：lsof -i :3030（无则启动 cd ~/myLocalRAG/server && node index.mjs &）\n2. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import（请求体 {}）\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0\n\n[输出]\n- 用 feishu-sender/send_feishu_text 发送纯文本\n- 接收人：黄谋（user:ou_3c3ad01561a915fe50731a0d71965963）\n- 格式：同步完成：新增N，归档N，失败N（当有待处理升格候选时追加「另有 N 条升格候选待处理」）\n- 长度 ≤ 300 字\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，只输出「NO_REPLY」并结束，不调用任何发送工具\n- 当 API 返回 HTTP 403（用户额度不足）时，只输出「NO_REPLY」并结束，不调用任何发送工具",
       "timeoutSeconds": 180
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
