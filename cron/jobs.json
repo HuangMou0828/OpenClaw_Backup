@@ -1,43 +1,5 @@
 [
   {
-    "id": "29e5075d-8c01-4091-b030-681eb13a57de",
-    "agentId": "main",
-    "sessionKey": "agent:main:main",
-    "name": "EvoMap 每日观测报告",
-    "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
-    "enabled": true,
-    "createdAtMs": 1776352425962,
-    "updatedAtMs": 1776769655481,
-    "schedule": {
-      "expr": "0 21 * * *",
-      "kind": "cron",
-      "tz": "Asia/Shanghai"
-    },
-    "sessionTarget": "current",
-    "wakeMode": "now",
-    "payload": {
-      "kind": "agentTurn",
-      "message": "你是 EvoMap 进化观测报告生成器。\n\n第一步：运行 EvoMap 更新数据\n/Users/hm/.openclaw/workspace/evolver/index.js\n（工作目录：/Users/hm/.openclaw/workspace/evolver）\n\n第二步：读取最新的进化数据\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n第三步：生成人类可读的观测报告（中文，禁止Markdown表格），直接作为回复文本输出。\n\n报告模板：\n# EvoMap 进化观测日报\n\n日期：{{date}}\n周期：{{cycleCount}}\n\n## 本次检测到的信号\n{{signals列表，每条一行，正常/异常标注颜色}}\n\n## 选中的基因\n- 基因ID：{{gene_id}}\n- 选择理由：{{选择原因一句话}}\n\n## 人格状态\n- 严谨度：{{rigor}}（{{较上轮变化}})\n- 创造力：{{creativity}}\n- 服从度：{{obedience}}\n- 本轮漂移：{{有/无}}\n\n## 当前策略\n- 策略名称：{{strategy_name}}\n- 风险等级：{{risk_level}}\n- 预估影响：{{blast_radius}}\n\n## 简报\n{{一句话总结本次观测的核心发现}}\n\n输出完整报告后直接结束。不要调用任何飞书消息发送工具，announce delivery 会自动推送。",
-      "timeoutSeconds": 300
-    },
-    "delivery": {
-      "accountId": "default",
-      "channel": "feishu",
-      "mode": "announce",
-      "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
-    },
-    "state": {
-      "nextRunAtMs": 1776776400000,
-      "lastRunAtMs": 1776769621855,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 33626,
-      "lastDeliveryStatus": "delivered",
-      "consecutiveErrors": 0,
-      "lastDelivered": true
-    }
-  },
-  {
     "id": "daily-memory-promote",
     "name": "每日记忆晋升 + Obsidian同步",
     "description": "每4小时晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
@@ -217,7 +179,7 @@
     "description": "OpenClaw inbox 导入兜底任务（18:00），消费 ~/.openclaw/knowledge/inbox",
     "enabled": true,
     "createdAtMs": 1775981693565,
-    "updatedAtMs": 1776776081937,
+    "updatedAtMs": 1776778535525,
     "schedule": {
       "expr": "0 18 * * *",
       "kind": "cron",
@@ -227,7 +189,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，汇总结果发给黄谋。\n\n[数据]\n1. 检查 3030 服务：lsof -i :3030（无则启动 cd ~/myLocalRAG/server && node index.mjs &）\n2. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import（请求体 {}）\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0\n\n[输出]\n- 用 feishu-sender/send_feishu_text 发送纯文本\n- 接收人：黄谋（user:ou_3c3ad01561a915fe50731a0d71965963）\n- 格式：同步完成：新增N，归档N，失败N（当有待处理升格候选时追加「另有 N 条升格候选待处理」）\n- 长度 ≤ 300 字\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，只输出「NO_REPLY」并结束，不调用任何发送工具\n- 当 API 返回 HTTP 403（用户额度不足）时，只输出「NO_REPLY」并结束，不调用任何发送工具",
+      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，将同步结果发给黄谋。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若空，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n2. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/openclaw-knowledge/import -H 'Content-Type: application/json' -d '{}'\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：\n   exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n- 用 feishu-sender/send_feishu_text 发送纯文本\n- 接收人：黄谋（user:ou_3c3ad01561a915fe50731a0d71965963）\n- 格式：同步完成：新增N，归档N，失败N（有待处理候选时追加「另有 N 条升格候选待处理」）\n- 长度 ≤ 300 字\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，只输出「NO_REPLY」并结束，不调用任何发送工具\n- 当 API 返回 HTTP 403（用户额度不足）时，只输出「NO_REPLY」并结束，不调用任何发送工具",
       "timeoutSeconds": 180
     },
     "delivery": {
@@ -324,6 +286,45 @@
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
+    }
+  },
+  {
+    "id": "29e5075d-8c01-4091-b030-681eb13a57de",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
+    "name": "EvoMap 每日观测报告",
+    "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
+    "enabled": true,
+    "createdAtMs": 1776352425962,
+    "updatedAtMs": 1776776478952,
+    "schedule": {
+      "expr": "0 21 * * *",
+      "kind": "cron",
+      "tz": "Asia/Shanghai"
+    },
+    "sessionTarget": "current",
+    "wakeMode": "now",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "你是 EvoMap 进化观测报告生成器。\n\n第一步：运行 EvoMap 更新数据\n/Users/hm/.openclaw/workspace/evolver/index.js\n（工作目录：/Users/hm/.openclaw/workspace/evolver）\n\n第二步：读取最新的进化数据\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n第三步：生成人类可读的观测报告（中文，禁止Markdown表格），直接作为回复文本输出。\n\n报告模板：\n# EvoMap 进化观测日报\n\n日期：{{date}}\n周期：{{cycleCount}}\n\n## 本次检测到的信号\n{{signals列表，每条一行，正常/异常标注颜色}}\n\n## 选中的基因\n- 基因ID：{{gene_id}}\n- 选择理由：{{选择原因一句话}}\n\n## 人格状态\n- 严谨度：{{rigor}}（{{较上轮变化}})\n- 创造力：{{creativity}}\n- 服从度：{{obedience}}\n- 本轮漂移：{{有/无}}\n\n## 当前策略\n- 策略名称：{{strategy_name}}\n- 风险等级：{{risk_level}}\n- 预估影响：{{blast_radius}}\n\n## 简报\n{{一句话总结本次观测的核心发现}}\n\n输出完整报告后直接结束。不要调用任何飞书消息发送工具，announce delivery 会自动推送。",
+      "timeoutSeconds": 300
+    },
+    "delivery": {
+      "accountId": "default",
+      "channel": "feishu",
+      "mode": "announce",
+      "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
+    },
+    "state": {
+      "nextRunAtMs": 1776862800000,
+      "lastRunAtMs": 1776776400024,
+      "lastRunStatus": "error",
+      "lastStatus": "error",
+      "lastDurationMs": 78928,
+      "lastDeliveryStatus": "delivered",
+      "consecutiveErrors": 1,
+      "lastDelivered": true,
+      "lastError": "⚠️ Agent couldn't generate a response. Note: some tool actions may have already been executed — please verify before retrying."
     }
   },
   {
