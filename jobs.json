@@ -1,0 +1,407 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "5afafd46-2178-4369-b459-d48965471b5c",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "mylocalrag-l5-health-check",
+      "description": "myLocalRAG L5 健康巡检，每天 09:00 检查服务状态、vault lint 和 promotion queue。只读操作，不写入任何数据。",
+      "enabled": true,
+      "createdAtMs": 1775981687126,
+      "updatedAtMs": 1776769732584,
+      "schedule": {
+        "expr": "0 9 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "你是 myLocalRAG 的 L5 健康巡检助手。\n\n第一步：检查 3030 服务状态。如果 `lsof -i :3030` 无输出，则运行 `cd ~/myLocalRAG/server && node index.mjs &` 启动服务，等待 3 秒后再继续。\n\n第二步：按顺序调用：\n1. GET http://127.0.0.1:3030/api/health\n2. GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0\n\n第三步：根据 API 结果，直接输出巡检报告文本。不要调用任何飞书消息发送工具，announce delivery 会自动推送。\n\n输出格式：\n# myLocalRAG L5 健康巡检\n\n日期：{{今天日期}}\n\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n\n如果 health.ok != true，输出「⚠️ 服务不健康，请检查」并列出具体问题。",
+        "timeoutSeconds": 300
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1776819600000,
+        "lastRunAtMs": 1776769704504,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 28080,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "1b1c4471-7826-4c8f-aaef-c7a42a85748a",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "mylocalrag-openclaw-inbox-import",
+      "description": "OpenClaw inbox 导入兜底任务（18:00），消费 ~/.openclaw/knowledge/inbox",
+      "enabled": true,
+      "createdAtMs": 1775981693565,
+      "updatedAtMs": 1776769877142,
+      "schedule": {
+        "expr": "0 18 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行以下任务：\n1. 运行 `python3 /Users/hm/.openclaw/workspace/scripts/mylocalrag-inbox-import.py`\n2. 脚本输出的 JSON 中 `message` 字段就是最终消息文本（纯文本，无 JSON 结构）\n3. 通过飞书消息工具发送给黄谋：action=send, channel=feishu, target=user:ou_3c3ad01561a915fe50731a0d71965963, msg_type=text, content={\"text\":\"消息文本\"}（将 message 字段的值套入 text 结构）\n4. 发完后只输出「✅ inbox 导入已完成」，不要其他内容，announce 会自动推送这条消息",
+        "timeoutSeconds": 180
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      },
+      "state": {
+        "lastRunAtMs": 1776765600020,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 4021,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 1,
+        "nextRunAtMs": 1776852000000,
+        "lastDelivered": true,
+        "lastError": "403 用户额度不足, 剩余额度: ＄0.000000 (request id: 20260421100002952889438MopfPzHD)",
+        "lastErrorReason": "auth"
+      }
+    },
+    {
+      "id": "c0c06ba7-5bb6-40eb-8187-097e584750b3",
+      "agentId": "main",
+      "sessionKey": "session:mylocalrag-daily-report",
+      "name": "mylocalrag-daily-ai-usage-report",
+      "description": "myLocalRAG 每日 AI 使用日报，每天 20:30 生成当天 AI 使用复盘和 skill 候选。只读报告，不写入任何数据。",
+      "enabled": true,
+      "createdAtMs": 1775981700797,
+      "updatedAtMs": 1776761403864,
+      "schedule": {
+        "expr": "30 20 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "你是 myLocalRAG 的每日 AI 使用复盘助手。\n\n重要：生成报告后，必须且只能通过以下方式送达黄谋——\n使用 message 工具（这是 OpenClaw 内置工具，channel=feishu 表示发送到飞书）：\n- action = send\n- channel = feishu\n- target = user:ou_3c3ad01561a915fe50731a0d71965963\n- msg_type = text\n- message = 完整报告全文（把下面模板里的占位符替换后作为 content 的值）\n\n不要把报告内容输出在回复文本里，不要放在 summary 里，只允许通过 message 工具发送。\n\n第一步：检查 3030 服务状态。如果 `lsof -i :3030` 无输出，则运行 `cd ~/myLocalRAG/server && node index.mjs &` 启动服务，等待 3 秒后再继续。\n\n第二步：调用 POST http://127.0.0.1:3030/api/review，请求体：{\"recentDays\": 1, \"minRepeatedPrompt\": 2}。\n\n第三步：生成报告并通过 message 工具发送。不要在回复文本里包含报告内容。\n\n报告模板（必须完全填入，发送给黄谋）：\n# AI 使用日报\n\n日期：{{YYYY-MM-DD}}\n置信度：high\n\n## 今日概览\n- 会话数：{{sessionCount}}\n- 消息数：{{messageCount}}\n- 平均消息数：{{avgMessagesPerSession}}\n- 主要 provider：{{top_provider}}\n\n## 高频主题\n{{top_5_terms}}\n\n## 重复问题模式\n{{repeated_prompt_summary or \"无\"}}\n\n## Skill 候选\n{{skill_candidates or \"无\"}}\n\n## 今日可沉淀经验\n- errors 候选：{{error_lessons or \"无\"}}\n- patterns 候选：{{patterns or \"无\"}}\n\n## 明日建议\n1. 确认 3030 服务正常运行\n2. 观察会话数据同步情况\n3. 如有异常检查同步脚本",
+        "timeoutSeconds": 300
+      },
+      "state": {
+        "nextRunAtMs": 1776774600000,
+        "lastRunAtMs": 1776761352938,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 50926,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      }
+    },
+    {
+      "id": "4839664c-48b2-4915-8350-d97ba317c3eb",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "mylocalrag-weekly-ai-review",
+      "description": "myLocalRAG 每周 AI 使用复盘和 skill 候选，每周一 09:30 生成上周 7 天 AI 使用报告。只读报告，不写入任何数据。",
+      "enabled": true,
+      "createdAtMs": 1775981708224,
+      "updatedAtMs": 1776759133495,
+      "schedule": {
+        "expr": "30 9 * * 1",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "你是 myLocalRAG 的每周 AI 使用复盘和 skill 候选助手。\n\n第一步：检查 3030 服务状态。如果 `lsof -i :3030` 无输出，则运行 `cd ~/myLocalRAG/server && node index.mjs &` 启动服务，等待 3 秒后再继续。\n\n第二步：调用 POST http://127.0.0.1:3030/api/review，请求体：{\"recentDays\": 7, \"minRepeatedPrompt\": 2}。\n如果 repeatedPrompts 中有高频低质量 prompt，可以最多挑 3 条调用 POST http://127.0.0.1:3030/api/prompt-score。\n如果用户明显需要可复用模板，可以最多挑 1 条调用 POST http://127.0.0.1:3030/api/prompt-optimize，但只输出建议，不自动写入 skill。\n\n要求：\n- 不自动创建 skill，不自动修改任何配置，不自动删除历史。\n- 输出 3-5 个高价值主题。\n- 输出 1-5 个 skill 候选，并按优先级排序。\n- 每个候选必须包含触发条件、输入、输出、校验清单和证据。\n\n输出模板：\n# AI 使用周报与 Skill 候选\n\n周期：{{start_date}} 至 {{end_date}}\n\n## 使用概览\n- 会话数：{{sessionCount}}\n- 消息数：{{messageCount}}\n- 主要 provider：{{providerStats}}\n- 长会话数：{{longSessionsCount}}\n\n## 高价值主题\n{{top_topics}}\n\n## 重复问题模式\n{{repeated_prompts}}\n\n## Skill 候选\n{{skill_candidates_ranked}}\n\n## 本周落地计划\n1. {{plan_1}}\n2. {{plan_2}}\n3. {{plan_3}}\n\n## 需要用户确认\n{{confirmation_needed}}\n\n输出后直接结束，不要多余说明。",
+        "timeoutSeconds": 300
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1777253400000,
+        "lastRunAtMs": 1776648600021,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 230767,
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1,
+        "lastError": "Error: LarkClient[default]: appId and appSecret are required"
+      }
+    },
+    {
+      "id": "8dafe13c-e258-42d6-9236-0beb6d60176c",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "mylocalrag-weekly-promotion-queue-report",
+      "description": "myLocalRAG Promotion Queue 周报，每周五 17:30 汇总最值得处理的升格候选。只读报告，不自动执行任何升格操作。",
+      "enabled": true,
+      "createdAtMs": 1775981714831,
+      "updatedAtMs": 1776769877148,
+      "schedule": {
+        "expr": "30 17 * * 5",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行以下任务：\n1. 运行 `python3 /Users/hm/.openclaw/workspace/scripts/mylocalrag-queue-report.py --skeleton`\n2. 脚本输出的就是预格式好的周报骨架，LLM 只做两件事：\n   - 如果 approvedSyntheses 有内容：在「本周建议」和「需要用户确认」填入 1-3 句简短分析\n   - 如果 approvedSyntheses 为空：输出「本周无待处理升格候选」\n3. 把最终报告通过飞书消息工具发送给黄谋：action=send, channel=feishu, target=user:ou_3c3ad01561a915fe50731a0d71965963, msg_type=text\n4. 发完后只输出「✅ Promotion Queue 周报已发送」，不要其他内容，announce 会自动推送这条消息",
+        "timeoutSeconds": 180
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1777023000000,
+        "lastRunAtMs": 1776420597989,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 17688,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "1dddba20-1eba-4144-9c9e-e5573ad4d2a3",
+      "name": "工作日待办截止提醒",
+      "description": "每周一到周五下午5点查询今日截止的飞书项目待办并推送",
+      "enabled": true,
+      "createdAtMs": 1776048853993,
+      "updatedAtMs": 1776762716696,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 17 * * 1-5",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行以下任务：\n1. 运行 `python3 /Users/hm/.openclaw/workspace/scripts/feishu-todo-refine.py`\n2. 脚本输出的就是最终消息文本，直接作为回复输出\n3. 不要调用任何飞书消息发送工具，announce delivery 会自动推送。"
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      },
+      "state": {
+        "nextRunAtMs": 1776848400000,
+        "lastRunAtMs": 1776762000024,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 166606,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "75af470f-d4c9-4e5b-b8ea-7d30320811f8",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "工作日待办批量流转",
+      "description": "每周一到周五 20:20 查询今日截止的飞书项目待办并批量流转到下一节点，完成后推送飞书消息",
+      "enabled": true,
+      "createdAtMs": 1776074891613,
+      "updatedAtMs": 1776762705584,
+      "schedule": {
+        "expr": "20 20 * * 1-5",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "请执行以下任务：\n\n第一步：运行 `python3 /Users/hm/.openclaw/workspace/scripts/preformat-todo-today.py`\n\n第二步：解析输出：\n- 如果输出第一行是 `NO_TASKS`：输出「今日无截止待办 ✅」，然后结束\n- 如果输出第一行是 `HAS_TASKS`：读取 /tmp/openclaw_todo_today.json，对每个任务调用 MCP transition_node 流转（project_key=63f06ba317c6ab1823e64ce4，action=confirm），流转完成后，输出格式化的最终报告文本（包含每条任务的流转结果）\n\n第三步：输出最终消息文本后直接结束。不要调用任何飞书消息发送工具，announce delivery 会自动推送。",
+        "timeoutSeconds": 300
+      },
+      "delivery": {
+        "accountId": "default",
+        "channel": "feishu",
+        "mode": "announce",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
+      },
+      "state": {
+        "nextRunAtMs": 1776774000000,
+        "lastRunAtMs": 1776687600024,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 15237,
+        "lastDeliveryStatus": "unknown",
+        "consecutiveErrors": 1,
+        "lastError": "Error: LarkClient[default]: appId and appSecret are required"
+      }
+    },
+    {
+      "id": "daily-memory-promote",
+      "name": "每日记忆晋升 + Obsidian同步",
+      "description": "每4小时晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
+      "enabled": true,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 */8 * * *",
+        "tz": "Asia/Shanghai"
+      },
+      "payload": {
+        "kind": "agentTurn",
+        "message": "你是每日记忆晋升助手。执行前先运行状态检查：\n\nmay_run: 1\n\n如果退出码为 1（距上次成功不足4小时），输出「记忆晋升：距上次执行不足4小时，已跳过」然后结束。\n\n如果退出码为 0，执行晋升任务：\n1. 读取 .learnings/ERRORS.md、LEARNINGS.md、FEATURES.md，找出所有 pending 条目\n2. 按 promote 标准筛选（confidence: high 直接上；medium 需满足：同类错误出现2次以上 / 影响外部系统操作决策 / 节省超过30分钟）\n3. 将符合标准的条目 promote 到 MEMORY.md，格式：「✅/❌/📌 内容描述 [confidence: high/medium, verified: YYYY-MM-DD]」\n4. 更新 state 文件：bash ~/.openclaw/cron/state/cron-update-state.sh daily-memory-promote success\n5. 如果 promote 了任何条目，输出晋升报告（列出 promoted N 条、archived N 条）\n\n如果没有任何 pending 条目，输出「本次无待晋升内容」并更新 state。"
+      },
+      "state": {
+        "nextRunAtMs": 1776787387569,
+        "lastRunAtMs": 1776758587587,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 10250,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      },
+      "sessionTarget": "current",
+      "updatedAtMs": 1776758597837,
+      "delivery": {
+        "mode": "announce",
+        "channel": "feishu",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+        "accountId": "default"
+      }
+    },
+    {
+      "id": "29e5075d-8c01-4091-b030-681eb13a57de",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "EvoMap 每日观测报告",
+      "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
+      "enabled": true,
+      "createdAtMs": 1776352425962,
+      "updatedAtMs": 1776769655481,
+      "schedule": {
+        "expr": "0 21 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "current",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "你是 EvoMap 进化观测报告生成器。\n\n第一步：运行 EvoMap 更新数据\n/Users/hm/.openclaw/workspace/evolver/index.js\n（工作目录：/Users/hm/.openclaw/workspace/evolver）\n\n第二步：读取最新的进化数据\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n第三步：生成人类可读的观测报告（中文，禁止Markdown表格），直接作为回复文本输出。\n\n报告模板：\n# EvoMap 进化观测日报\n\n日期：{{date}}\n周期：{{cycleCount}}\n\n## 本次检测到的信号\n{{signals列表，每条一行，正常/异常标注颜色}}\n\n## 选中的基因\n- 基因ID：{{gene_id}}\n- 选择理由：{{选择原因一句话}}\n\n## 人格状态\n- 严谨度：{{rigor}}（{{较上轮变化}})\n- 创造力：{{creativity}}\n- 服从度：{{obedience}}\n- 本轮漂移：{{有/无}}\n\n## 当前策略\n- 策略名称：{{strategy_name}}\n- 风险等级：{{risk_level}}\n- 预估影响：{{blast_radius}}\n\n## 简报\n{{一句话总结本次观测的核心发现}}\n\n输出完整报告后直接结束。不要调用任何飞书消息发送工具，announce delivery 会自动推送。",
+        "timeoutSeconds": 300
+      },
+      "delivery": {
+        "accountId": "default",
+        "channel": "feishu",
+        "mode": "announce",
+        "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
+      },
+      "state": {
+        "nextRunAtMs": 1776776400000,
+        "lastRunAtMs": 1776769621855,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 33626,
+        "lastDeliveryStatus": "delivered",
+        "consecutiveErrors": 0,
+        "lastDelivered": true
+      }
+    },
+    {
+      "id": "27020e87-3fe4-4a23-bcc1-5b7e8b4ea34f",
+      "agentId": "main",
+      "sessionKey": "agent:main:main",
+      "name": "AI每日热点简报",
+      "enabled": true,
+      "createdAtMs": 1776518789851,
+      "updatedAtMs": 1776736922225,
+      "schedule": {
+        "expr": "0 10 * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "执行 ai-news-digest skill，生成 AI 热点日报并发送到 Discord（channel ID: 1495054057931538432，accountId: main）。",
+        "timeoutSeconds": 600
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "discord",
+        "to": "channel:1495054057931538432",
+        "accountId": "main"
+      },
+      "state": {
+        "nextRunAtMs": 1776823200000,
+        "lastRunAtMs": 1776736800004,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 122221,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 1,
+        "lastDelivered": false,
+        "lastError": "⚠️ Agent couldn't generate a response. Please try again.",
+        "lastDeliveryError": "⚠️ Agent couldn't generate a response. Please try again."
+      }
+    },
+    {
+      "id": "a9ed14ce-9076-4dd4-9424-ccf361a0001b",
+      "name": "Memory Dreaming Promotion",
+      "description": "[managed-by=memory-core.short-term-promotion] Promote weighted short-term recalls into MEMORY.md (limit=10, minScore=0.800, minRecallCount=3, minUniqueQueries=3, recencyHalfLifeDays=14, maxAgeDays=30).",
+      "enabled": true,
+      "createdAtMs": 1776688785152,
+      "updatedAtMs": 1776711855830,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 3 * * *"
+      },
+      "sessionTarget": "main",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "systemEvent",
+        "text": "__openclaw_memory_core_short_term_promotion_dream__"
+      },
+      "state": {
+        "nextRunAtMs": 1776798000000,
+        "lastRunAtMs": 1776711853488,
+        "lastRunStatus": "ok",
+        "lastStatus": "ok",
+        "lastDurationMs": 2342,
+        "lastDeliveryStatus": "not-requested",
+        "consecutiveErrors": 0
+      }
+    }
+  ]
+}
