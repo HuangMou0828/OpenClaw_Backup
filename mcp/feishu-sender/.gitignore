@@ -1,0 +1,9 @@
+# Credentials — never commit
+config.json
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
