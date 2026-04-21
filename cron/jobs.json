@@ -1,38 +1,5 @@
 [
   {
-    "id": "daily-memory-promote",
-    "name": "每日记忆晋升 + Obsidian同步",
-    "description": "每4小时晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
-    "enabled": true,
-    "schedule": {
-      "kind": "cron",
-      "expr": "0 */8 * * *",
-      "tz": "Asia/Shanghai"
-    },
-    "payload": {
-      "kind": "agentTurn",
-      "message": "你是每日记忆晋升助手。执行前先运行状态检查：\n\nmay_run: 1\n\n如果退出码为 1（距上次成功不足4小时），输出「记忆晋升：距上次执行不足4小时，已跳过」然后结束。\n\n如果退出码为 0，执行晋升任务：\n1. 读取 .learnings/ERRORS.md、LEARNINGS.md、FEATURES.md，找出所有 pending 条目\n2. 按 promote 标准筛选（confidence: high 直接上；medium 需满足：同类错误出现2次以上 / 影响外部系统操作决策 / 节省超过30分钟）\n3. 将符合标准的条目 promote 到 MEMORY.md，格式：「✅/❌/📌 内容描述 [confidence: high/medium, verified: YYYY-MM-DD]」\n4. 更新 state 文件：bash ~/.openclaw/cron/state/cron-update-state.sh daily-memory-promote success\n5. 如果 promote 了任何条目，输出晋升报告（列出 promoted N 条、archived N 条）\n\n如果没有任何 pending 条目，输出「本次无待晋升内容」并更新 state。"
-    },
-    "state": {
-      "nextRunAtMs": 1776787387569,
-      "lastRunAtMs": 1776758587587,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 10250,
-      "lastDeliveryStatus": "delivered",
-      "consecutiveErrors": 0,
-      "lastDelivered": true
-    },
-    "sessionTarget": "current",
-    "updatedAtMs": 1776758597837,
-    "delivery": {
-      "mode": "announce",
-      "channel": "feishu",
-      "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
-      "accountId": "default"
-    }
-  },
-  {
     "id": "a9ed14ce-9076-4dd4-9424-ccf361a0001b",
     "name": "Memory Dreaming Promotion",
     "description": "[managed-by=memory-core.short-term-promotion] Promote weighted short-term recalls into MEMORY.md (limit=10, minScore=0.800, minRecallCount=3, minUniqueQueries=3, recencyHalfLifeDays=14, maxAgeDays=30).",
@@ -57,6 +24,39 @@
       "lastDurationMs": 2342,
       "lastDeliveryStatus": "not-requested",
       "consecutiveErrors": 0
+    }
+  },
+  {
+    "id": "daily-memory-promote",
+    "name": "memory-daily-promote",
+    "description": "每4小时晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 3 * * *",
+      "tz": "Asia/Shanghai"
+    },
+    "payload": {
+      "kind": "agentTurn",
+      "message": "[意图] 把 .learnings 下 pending 条目晋升到 MEMORY.md，每天凌晨只跑一次。\n\n[数据]\n1. 读取 ~/.openclaw/workspace/.learnings/ERRORS.md\n2. 读取 ~/.openclaw/workspace/.learnings/LEARNINGS.md\n3. 读取 ~/.openclaw/workspace/.learnings/FEATURES.md\n4. 读取 ~/.openclaw/workspace/MEMORY.md（检查已 promote 条目，避免重复）\n\n[输出]\n- 用 exec 调用 Python 脚本执行 promote 逻辑（判断 confidence + 去重 + 追加写入 MEMORY.md）\n- 格式：promote 结果统计文本（promoted N 条、archived N 条、degraded N 条）\n- 长度 ≤ 500 字\n\n[静默]\n- 当三个 .learnings 文件均无 pending 条目时，只输出「NO_REPLY」并结束\n- 当距上次成功执行不足 4 小时，只输出「NO_REPLY」并结束"
+    },
+    "state": {
+      "nextRunAtMs": 1776798000000,
+      "lastRunAtMs": 1776758587587,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 10250,
+      "lastDeliveryStatus": "delivered",
+      "consecutiveErrors": 0,
+      "lastDelivered": true
+    },
+    "sessionTarget": "isolated",
+    "updatedAtMs": 1776779817204,
+    "delivery": {
+      "mode": "none",
+      "channel": "feishu",
+      "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+      "accountId": "default"
     }
   },
   {
