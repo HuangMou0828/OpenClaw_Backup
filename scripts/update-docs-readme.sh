@@ -1,28 +1,12 @@
 #!/usr/bin/env bash
-# update-docs-readme.sh — 更新 docs/README.md 的文件清单
-# 在 ocp 之前调用
+# update-docs-readme.sh — 更新时间戳
+# docs/README.md 不再需要全局文件清单
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DOCS_README="$REPO_DIR/docs/README.md"
 
-# 生成文件列表
-FILE_LIST=$(cd "$REPO_DIR" && git ls-tree -r HEAD --name-only | grep -v ".gitkeep" | sort)
+# 更新时间戳
+sed -i.bak "s/最后更新.*/最后更新：$(date '+%Y-%m-%d %H:%M')/" "$DOCS_README" 2>/dev/null || true
+rm -f "${DOCS_README}.bak"
 
-# 更新 README
-cat > "$DOCS_README" << EOF
-# 追踪文件清单
-
-> 本目录通过 symlink 追踪真实文件。修改后用 \`ocp\` 提交会自动更新本文件。
-
-## 最后更新
-
-$(date "+%Y-%m-%d %H:%M")
-
-## 追踪文件列表
-
-\`\`\`
-$FILE_LIST
-\`\`\`
-EOF
-
-echo "✅ docs/README.md 已更新"
+echo "✅ docs/README.md 时间戳已更新"
