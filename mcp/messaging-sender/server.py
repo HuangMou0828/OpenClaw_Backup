@@ -17,7 +17,7 @@ import requests
 from mcp.server import Server
 from mcp.types import Tool, TextContent
 
-app = Server("feishu-sender")
+app = Server("messaging-sender")
 
 # ─── Credential loading ───────────────────────────────────────────────────────
 
