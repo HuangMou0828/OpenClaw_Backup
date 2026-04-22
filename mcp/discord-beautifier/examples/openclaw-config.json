@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "discord-beautifier": {
+      "command": "python",
+      "args": ["/path/to/discord-beautifier/src/server.py"]
+    }
+  }
+}

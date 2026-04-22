@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Discord Beautifier MCP Server
+
+Formats Markdown/JSON content as Discord embeds.
+"""
+
+import json
+import sys
+from typing import Any
+
+from mcp.server import Server
+from mcp.types import Tool, TextContent
+
+from formatters.detector import detect_format
+from formatters.markdown import format_markdown
+from formatters.json_formatter import format_json
+from styles.presets import apply_style, PRESET_STYLES
+
+
+app = Server("discord-beautifier")
+
+
+@app.list_tools()
+async def list_tools() -> list[Tool]:
+    return [
+        Tool(
+            name="format_as_discord_embed",
+            description=(
+                "Convert Markdown or JSON content to Discord embed format. "
+                "Automatically detects input type and applies styling. "
+                "Returns Discord-ready embed JSON."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "Markdown or JSON string to format",
+                    },
+                    "style": {
+                        "type": "string",
+                        "description": (
+                            "Preset style: auto (default), news, report, alert, changelog"
+                        ),
+                        "enum": ["auto", "news", "report", "alert", "changelog"],
+                        "default": "auto",
+                    },
+                },
+                "required": ["content"],
+            },
+        ),
+        Tool(
+            name="send_to_discord",
+            description="Send formatted embed to Discord webhook URL",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "embed": {
+                        "type": "object",
+                        "description": "Discord embed JSON from format_as_discord_embed",
+                    },
+                    "webhook_url": {
+                        "type": "string",
+                        "description": "Discord webhook URL",
+                    },
+                },
+                "required": ["embed", "webhook_url"],
+            },
+        ),
+    ]
+
+
+@app.call_tool()
+async def call_tool(name: str, arguments: Any) -> list[TextContent]:
+    if name == "format_as_discord_embed":
+        content = arguments["content"]
+        style = arguments.get("style", "auto")
+
+        # Detect input format
+        format_type = detect_format(content)
+
+        # Format based on type
+        if format_type == "markdown":
+            embed_data = format_markdown(content)
+        elif format_type == "json":
+            embed_data = format_json(content)
+        else:
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {"error": f"Unsupported format: {format_type}"}, indent=2
+                    ),
+                )
+            ]
+
+        # Apply style
+        styled_embed = apply_style(embed_data, style)
+
+        # Wrap in Discord message format
+        result = {"embeds": [styled_embed]}
+
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+    elif name == "send_to_discord":
+        import requests
+
+        embed = arguments["embed"]
+        webhook_url = arguments["webhook_url"]
+
+        try:
+            response = requests.post(webhook_url, json=embed, timeout=10)
+            response.raise_for_status()
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {"success": True, "status_code": response.status_code}, indent=2
+                    ),
+                )
+            ]
+        except Exception as e:
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"success": False, "error": str(e)}, indent=2),
+                )
+            ]
+
+    return [TextContent(type="text", text=json.dumps({"error": "Unknown tool"}, indent=2))]
+
+
+async def main():
+    from mcp.server.stdio import stdio_server
+
+    async with stdio_server() as (read_stream, write_stream):
+        await app.run(read_stream, write_stream, app.create_initialization_options())
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(main())

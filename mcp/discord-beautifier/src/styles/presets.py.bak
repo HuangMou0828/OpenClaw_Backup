@@ -1,0 +1,109 @@
+"""Preset styles for Discord embeds"""
+
+from typing import Dict, Any
+
+
+# Discord color palette (decimal format)
+COLORS = {
+    "blue": 3447003,      # Default Discord blue
+    "green": 3066993,     # Success green
+    "red": 15158332,      # Error/alert red
+    "orange": 15105570,   # Warning orange
+    "purple": 10181046,   # Info purple
+    "yellow": 16776960,   # Highlight yellow
+    "gray": 9807270,      # Neutral gray
+}
+
+
+PRESET_STYLES = {
+    "news": {
+        "color": COLORS["blue"],
+        "title_prefix": "📰 ",
+        "footer_icon": "📰",
+    },
+    "report": {
+        "color": COLORS["purple"],
+        "title_prefix": "📊 ",
+        "footer_icon": "📊",
+    },
+    "alert": {
+        "color": COLORS["red"],
+        "title_prefix": "⚠️ ",
+        "footer_icon": "⚠️",
+    },
+    "changelog": {
+        "color": COLORS["green"],
+        "title_prefix": "🚀 ",
+        "footer_icon": "🚀",
+    },
+}
+
+
+def apply_style(embed: Dict[str, Any], style: str) -> Dict[str, Any]:
+    """Apply preset style to embed.
+
+    Args:
+        embed: Base embed dict
+        style: Style name (auto, news, report, alert, changelog)
+
+    Returns:
+        Styled embed dict
+    """
+    # Auto-detect style based on content
+    if style == "auto":
+        style = detect_style(embed)
+
+    # Get style config
+    style_config = PRESET_STYLES.get(style, {})
+
+    # Apply color
+    if "color" in style_config:
+        embed["color"] = style_config["color"]
+
+    # Apply title prefix
+    if "title" in embed and "title_prefix" in style_config:
+        prefix = style_config["title_prefix"]
+        if not embed["title"].startswith(prefix):
+            embed["title"] = prefix + embed["title"]
+
+    # Apply footer icon
+    if "footer" in embed and "footer_icon" in style_config:
+        icon = style_config["footer_icon"]
+        footer_text = embed["footer"].get("text", "")
+        if not footer_text.startswith(icon):
+            embed["footer"]["text"] = icon + " " + footer_text
+
+    return embed
+
+
+def detect_style(embed: Dict[str, Any]) -> str:
+    """Auto-detect appropriate style based on content.
+
+    Args:
+        embed: Embed dict
+
+    Returns:
+        Style name
+    """
+    title = embed.get("title", "").lower()
+    description = embed.get("description", "").lower()
+    content = title + " " + description
+
+    # Alert keywords
+    if any(word in content for word in ["alert", "warning", "error", "critical", "urgent", "警告", "错误", "紧急"]):
+        return "alert"
+
+    # Changelog keywords
+    if any(word in content for word in ["release", "version", "update", "changelog", "发布", "更新", "版本"]):
+        return "changelog"
+
+    # News keywords
+    if any(word in content for word in ["breaking", "news", "announced", "新闻", "发布", "宣布"]):
+        return "news"
+
+    # Report keywords
+    if any(word in content for word in ["report", "summary", "analysis", "报告", "摘要", "分析"]):
+        return "report"
+
+    # Default to news
+    return "news"
