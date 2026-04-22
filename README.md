@@ -25,6 +25,16 @@ ln -s ~/openclaw-config/docs ~/docs
 # 查看当前追踪的文件
 git ls-tree -r HEAD --name-only | grep -v '.gitkeep'
 
-# 提交改动
-git add -A && git commit -m "update" && git push
+# 提交改动（按 git 规范 → 见下方 §规范）
+git status
+git diff
+git add <path>
+git commit -m "<type>(<scope>): <subject>"
+git push
 ```
+
+## 规范
+
+所有 git 操作遵循 [openclaw-git-standard](docs/03_Completed/openclaw-git-standard.md)。
+要点：原子提交、Conventional Commits 格式、git log 即 changelog、不写 CHANGELOG.md。
+
