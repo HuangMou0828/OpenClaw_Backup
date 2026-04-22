@@ -46,7 +46,7 @@
     "description": "每周一到周五下午5点查询今日截止的飞书项目待办并推送",
     "enabled": true,
     "createdAtMs": 1776048853993,
-    "updatedAtMs": 1776820375969,
+    "updatedAtMs": 1776821108465,
     "schedule": {
       "kind": "cron",
       "expr": "0 17 * * 1-5",
@@ -56,14 +56,14 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每个工作日 17:00 检查当日截止的飞书任务，生成提醒文本并通过 announce 推送。\n\n[数据]\n运行 python3 /Users/hm/.openclaw/workspace/scripts/feishu-todo-refine.py，脚本输出即为报告内容。\n\n[输出]\n直接输出脚本结果，不调用任何发送工具（announce delivery 自动推送飞书）。\n\n[静默]\n- 若脚本输出为空或仅含空白字符，输出「NO_REPLY」并结束",
+      "message": "[意图] 每个工作日 17:00 检查当日截止的飞书任务，生成提醒并发送到飞书。\n\n[数据]\n运行 python3 /Users/hm/.openclaw/workspace/scripts/feishu-todo-refine.py，脚本输出即为报告内容。\n\n[输出]\n1. 直接输出脚本结果作为报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告文本 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n[静默]\n- 若脚本输出为空或仅含空白字符，输出「NO_REPLY」并结束，不调用发送工具",
       "toolsAllow": [
         "exec"
       ],
       "lightContext": true
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
@@ -131,7 +131,7 @@
     "description": "每周一到周五 20:20 查询今日截止的飞书项目待办并批量流转到下一节点，完成后推送飞书消息",
     "enabled": true,
     "createdAtMs": 1776074891613,
-    "updatedAtMs": 1776820381146,
+    "updatedAtMs": 1776821113946,
     "schedule": {
       "expr": "20 20 * * 1-5",
       "kind": "cron",
@@ -141,7 +141,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每个工作日 20:20 将当日待办任务批量流转到指定状态。\n\n[数据]\n1. 运行 python3 /Users/hm/.openclaw/workspace/scripts/preformat-todo-today.py\n2. 解析输出第一行：\n   - 若为 NO_TASKS：输出「今日无截止待办 ✅」，然后结束\n   - 若为 HAS_TASKS：读取 /tmp/openclaw_todo_today.json，对每个任务调用 feishu_task_task（action=transition_node，project_key=63f06ba317c6ab1823e64ce4，action=confirm）\n3. 流转完成后输出格式化的最终报告文本\n\n[输出]\n直接输出报告文本，不调用任何发送工具（announce delivery 自动推送飞书）。\n\n[静默]\n- 若 preformat 输出第一行是 NO_TASKS，静默（NO_REPLY）",
+      "message": "[意图] 每个工作日 20:20 将当日待办任务批量流转到指定状态并发送到飞书。\n\n[数据]\n1. 运行 python3 /Users/hm/.openclaw/workspace/scripts/preformat-todo-today.py\n2. 解析输出第一行：\n   - 若为 NO_TASKS：输出「今日无截止待办 ✅」，然后结束\n   - 若为 HAS_TASKS：读取 /tmp/openclaw_todo_today.json，对每个任务调用 feishu_task_task（action=transition_node，project_key=63f06ba317c6ab1823e64ce4，action=confirm）\n3. 流转完成后生成流转报告\n\n[输出]\n1. 直接输出流转报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告文本 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n[静默]\n- 若 preformat 输出第一行是 NO_TASKS，静默（NO_REPLY），不调用发送工具",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec"
@@ -149,10 +149,10 @@
       "lightContext": true
     },
     "delivery": {
-      "accountId": "default",
+      "mode": "none",
       "channel": "feishu",
-      "mode": "announce",
-      "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
+      "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+      "accountId": "default"
     },
     "state": {
       "nextRunAtMs": 1776860400000,
@@ -173,7 +173,7 @@
     "description": "myLocalRAG 每日 AI 使用日报，每天 20:30 生成当天 AI 使用复盘和 skill 候选。只读报告，不写入任何数据。",
     "enabled": true,
     "createdAtMs": 1775981700797,
-    "updatedAtMs": 1776820873453,
+    "updatedAtMs": 1776821091038,
     "schedule": {
       "expr": "30 20 * * *",
       "kind": "cron",
@@ -183,7 +183,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每天 20:30 生成 myLocalRAG AI 使用复盘报告并通过 announce 推送。\n\n[数据]\n1. 优先调用 GET http://127.0.0.1:3030/api/daily-summary，用 exec 工具：exec(\"curl -s http://127.0.0.1:3030/api/daily-summary\")\n2. 若 3030 服务未运行：先启动 exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒后再调用 API\n3. 若脚本存在，也可运行：python3 /Users/hm/.openclaw/workspace/scripts/mylocalrag-daily-summary.py\n\n[输出]\n直接输出完整报告文本，不调用飞书消息工具（announce delivery 自动推送飞书）。\n格式模板：\n# 📊 myLocalRAG 每日 AI 使用复盘 · {日期}\n## 今日概况\n## Top Queries\n## 洞察\n\n[静默]\n- 若获取失败，输出「获取日报失败，请检查服务状态」并静默\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每天 20:30 生成 myLocalRAG AI 使用复盘报告并发送到飞书。\n\n[数据]\n1. 优先调用 GET http://127.0.0.1:3030/api/daily-summary，用 exec 工具：exec(\"curl -s http://127.0.0.1:3030/api/daily-summary\")\n2. 若 3030 服务未运行：先启动 exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒后再调用 API\n\n[输出]\n1. 直接输出完整报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 📊 myLocalRAG 每日 AI 使用复盘 · {日期}\n## 今日概况\n## Top Queries\n## 洞察\n\n[静默]\n- 若获取失败，输出「获取日报失败，请检查服务状态」并结束，不调用发送工具\n\n[约束]\n- 只读操作，不写入数据",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec"
@@ -201,7 +201,7 @@
       "lastDelivered": true
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
@@ -320,7 +320,7 @@
     "description": "myLocalRAG L5 健康巡检，每天 09:00 检查服务状态、vault lint 和 promotion queue。只读操作，不写入任何数据。",
     "enabled": true,
     "createdAtMs": 1775981687126,
-    "updatedAtMs": 1776820714082,
+    "updatedAtMs": 1776821085240,
     "schedule": {
       "expr": "0 9 * * *",
       "kind": "cron",
@@ -330,7 +330,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警，正常时静默。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若空，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n- 直接输出巡检报告文本（announce delivery 自动推送）\n- 格式：\n  # myLocalRAG L5 健康巡检\n  日期：{{今天日期}}\n  ## 服务状态\n  - 状态：{{health.ok}}\n  - workspace：{{health.workspace}}\n  ## Promotion Queue\n  - 待处理：{{queue.approvedSyntheses.length}}\n  - 进行中：{{queue.pendingSynthesis.length}}\n  - 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n- 长度 ≤ 300 字\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，只输出「NO_REPLY」并结束，不调用任何发送工具",
+      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警到飞书，正常时静默。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若无输出，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n1. 直接输出巡检报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 巡检报告文本 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式：\n# myLocalRAG L5 健康巡检\n日期：{今天日期}\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n- 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n长度 ≤ 300 字\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，只输出「NO_REPLY」并结束，不调用发送工具",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec"
@@ -338,7 +338,7 @@
       "lightContext": true
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
@@ -362,7 +362,7 @@
     "description": "myLocalRAG Promotion Queue 周报，每周五 17:30 汇总最值得处理的升格候选。只读报告，不自动执行任何升格操作。",
     "enabled": true,
     "createdAtMs": 1775981714831,
-    "updatedAtMs": 1776820370540,
+    "updatedAtMs": 1776821102407,
     "schedule": {
       "expr": "30 17 * * 5",
       "kind": "cron",
@@ -372,7 +372,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每周五 17:30 生成 L5 升格队列周报并通过 announce 推送。\n\n[数据]\n1. 运行 python3 /Users/hm/.openclaw/workspace/scripts/mylocalrag-queue-report.py --skeleton\n2. 脚本输出预格式骨架，若 approvedSyntheses 有内容：在「本周建议」和「需要用户确认」填入 1-3 句简短分析\n\n[输出]\n直接输出完整周报文本，不调用飞书消息工具（announce delivery 自动推送飞书）。\n\n[静默]\n- 若队列为空，输出「本周无待处理升格候选 ✅」并静默\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每周五 17:30 生成 L5 升格队列周报并发送到飞书。\n\n[数据]\n1. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n1. 直接输出完整周报文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 周报全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 📦 L5 升格队列周报 · {日期}\n## 队列概况\n## 需要用户确认\n## 本周建议\n\n[静默]\n- 若队列为空（approvedSyntheses==0 且无 pending），输出「本周无待处理升格候选 ✅」并结束，不调用发送工具\n\n[约束]\n- 只读操作，不写入数据",
       "timeoutSeconds": 180,
       "toolsAllow": [
         "exec"
@@ -380,7 +380,7 @@
       "lightContext": true
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
@@ -404,7 +404,7 @@
     "description": "myLocalRAG 每周 AI 使用复盘和 skill 候选，每周一 09:30 生成上周 7 天 AI 使用报告。只读报告，不写入任何数据。",
     "enabled": true,
     "createdAtMs": 1775981708224,
-    "updatedAtMs": 1776820592020,
+    "updatedAtMs": 1776821096668,
     "schedule": {
       "expr": "30 9 * * 1",
       "kind": "cron",
@@ -414,7 +414,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每周一 09:30 生成 myLocalRAG AI 使用复盘和 skill 候选建议并通过 announce 推送。\n\n[数据]\n1. 检查 3030 服务状态：exec(\"lsof -i :3030\")。若无输出，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 POST http://127.0.0.1:3030/api/review，请求体：{\"recentDays\": 7, \"minRepeatedPrompt\": 2}\n3. 若 repeatedPrompts 中有高频低质量 prompt，最多挑 3 条调用 POST http://127.0.0.1:3030/api/summary 进一步分析\n\n[输出]\n直接输出完整周报文本，不调用飞书消息工具（announce delivery 自动推送飞书）。\n格式模板：\n# 🧠 myLocalRAG 每周 AI 复盘 · {日期}\n## 本周使用概况\n## 重复 Prompt 分析\n## Skill 候选建议\n\n[静默]\n- 若服务不可用，输出「服务不可用，请检查 3030 服务状态」并静默\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每周一 09:30 生成 myLocalRAG AI 使用复盘和 skill 候选建议并发送到飞书。\n\n[数据]\n1. 检查 3030 服务状态：exec(\"lsof -i :3030\")。若无输出，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 POST http://127.0.0.1:3030/api/review：exec(\"curl -s -X POST http://127.0.0.1:3030/api/review -H 'Content-Type: application/json' -d '{\"recentDays\": 7, \"minRepeatedPrompt\": 2}'\")\n3. 若 repeatedPrompts 中有高频低质量 prompt，最多挑 3 条调用 POST http://127.0.0.1:3030/api/summary 进一步分析\n\n[输出]\n1. 直接输出完整周报文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 周报全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 🧠 myLocalRAG 每周 AI 复盘 · {日期}\n## 本周使用概况\n## 重复 Prompt 分析\n## Skill 候选建议\n\n[静默]\n- 若服务不可用，输出「服务不可用，请检查 3030 服务状态」并结束，不调用发送工具\n\n[约束]\n- 只读操作，不写入数据",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec"
@@ -422,7 +422,7 @@
       "lightContext": true
     },
     "delivery": {
-      "mode": "announce",
+      "mode": "none",
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
