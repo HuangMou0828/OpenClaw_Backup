@@ -319,7 +319,7 @@
     "name": "ai-news-daily-brief",
     "enabled": true,
     "createdAtMs": 1776518789851,
-    "updatedAtMs": 1776828737267,
+    "updatedAtMs": 1776829179867,
     "schedule": {
       "expr": "0 10 * * *",
       "kind": "cron",
@@ -329,7 +329,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每天 10:00 抓取中英文 AI 新闻 RSS，生成 Discord 富媒体日报并发送到频道 1495054057931538432。\n\n[数据]\n1. 并行抓取以下 RSS 源（exec 工具调用 curl，每源超时15秒）：\n   - 36氪: curl -s \"https://36kr.com/feed\"\n   - 爱范儿: curl -s \"https://www.ifanr.com/feed\"\n   - AIBase: curl -s \"https://news.aibase.cn/daily\"\n   - 量子位: curl -s -H \"User-Agent: Mozilla/5.0\" \"https://qbitai.com/feed\"\n   - VentureBeat: curl -s \"https://venturebeat.com/feed/\"\n   - TechCrunch: curl -s \"https://techcrunch.com/category/artificial-intelligence/feed/\"\n   - Ars Technica: curl -s \"https://arstechnica.com/ai/feed/\"\n2. 用 python3 解析 RSS XML，提取标题+摘要+链接+发布时间\n3. 去重，按时间排序，取48小时内内容，总条数≤15条\n\n[输出]\n1. 调用 messaging-sender/format_ai_news 生成 Discord embed JSON\n2. 调用 messaging-sender/send_to_discord 发送，参数：channel_id=\"1495054057931538432\"，embed=<上一步结果>\n格式模板：\n# 🤖 AI 热点日报 · {日期}\n🔥 本日头条（3条，含标题+摘要+链接）\n🏭 产业大事件（4-5条）\n🤖 模型技术（3-4条）\n💡 今日洞察（2条）\n\n[静默]\n- 全部 RSS 源均失败时，输出「所有新闻源均获取失败，请检查网络」并结束\n- 其他情况必须执行完整流程，不得跳过",
+      "message": "[意图] 每天 10:00 抓取中英文 AI 新闻 RSS，生成 Discord 富媒体日报并发送到频道 1495054057931538432。\n\n[数据]\n1. 并行抓取以下 RSS 源（exec 工具调用 curl，每源超时15秒）：\n   - 36氪: curl -s \"https://36kr.com/feed\"\n   - 爱范儿: curl -s \"https://www.ifanr.com/feed\"\n   - AIBase: curl -s \"https://news.aibase.cn/daily\"\n   - 量子位: curl -s -H \"User-Agent: Mozilla/5.0\" \"https://qbitai.com/feed\"\n   - VentureBeat: curl -s \"https://venturebeat.com/feed/\"\n   - TechCrunch: curl -s \"https://techcrunch.com/category/artificial-intelligence/feed/\"\n   - Ars Technica: curl -s \"https://arstechnica.com/ai/feed/\"\n2. 用 python3 解析 RSS XML，提取标题+摘要+链接+发布时间\n3. 去重，按时间排序，取48小时内内容，总条数≤15条\n\n[输出]\n1. 调用 discord-beautifier/format_ai_news 生成 Discord embed JSON\n2. 调用 messaging-sender/send_to_discord 发送，参数：channel_id=\"1495054057931538432\"，embed=<上一步结果>\n格式模板：\n# 🤖 AI 热点日报 · {日期}\n🔥 本日头条（3条，含标题+摘要+链接）\n🏭 产业大事件（4-5条）\n🤖 模型技术（3-4条）\n💡 今日洞察（2条）\n\n[静默]\n- 全部 RSS 源均失败时，输出「所有新闻源均获取失败，请检查网络」并结束\n- 其他情况必须执行完整流程，不得跳过",
       "timeoutSeconds": 600,
       "toolsAllow": [
         "exec"
@@ -344,14 +344,13 @@
     },
     "state": {
       "nextRunAtMs": 1776909600000,
-      "lastRunAtMs": 1776823200017,
-      "lastRunStatus": "error",
-      "lastStatus": "error",
-      "lastDurationMs": 102693,
+      "lastRunAtMs": 1776828782253,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 287814,
       "lastDeliveryStatus": "not-delivered",
-      "consecutiveErrors": 1,
-      "lastDelivered": false,
-      "lastDeliveryError": "⚠️ Agent couldn't generate a response. Please try again."
+      "consecutiveErrors": 0,
+      "lastDelivered": false
     }
   },
   {
