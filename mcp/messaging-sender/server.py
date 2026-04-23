@@ -31,13 +31,13 @@ def _load_config() -> dict:
     return _config
 
 def _feishu_app_id() -> str:
-    return _load_config().get("feishu", {}).get("app_id", "")
+    return _load_config().get("feishu", {}).get("app_id", "") or os.environ.get("FEISHU_APP_ID", "")
 
 def _feishu_app_secret() -> str:
     return _load_config().get("feishu", {}).get("app_secret", "") or os.environ.get("FEISHU_APP_SECRET", "")
 
 def _discord_bot_token() -> str:
-    return _load_config().get("discord", {}).get("bot_token", "")
+    return _load_config().get("discord", {}).get("bot_token", "") or os.environ.get("DISCORD_BOT_TOKEN", "")
 
 # ─── Feishu helpers ──────────────────────────────────────────────────────────
 

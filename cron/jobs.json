@@ -182,12 +182,13 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每天 21:00 运行 EvoMap 更新数据，生成人类可读的进化观测报告并发送到飞书。\n\n[数据]\n1. 运行 EvoMap 更新数据：exec(\"cd /Users/hm/.openclaw/workspace/evolver && node index.js\")\n2. 读取数据文件：\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n[输出]\n1. 直接输出完整观测报告（中文，禁止 Markdown 表格）\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n报告模板：\n# EvoMap 进化观测日报\n日期：{日期}\n周期：{cycleCount}\n## 本次检测到的信号\n{signals列表，每条一行，正常/异常标注颜色}\n## 选中的基因\n- 基因ID：{gene_id}\n- 选择理由：{选择原因一句话}\n## 人格状态\n- 严谨度：{rigor}（{较上轮变化}）\n- 创造力：{creativity}\n- 服从度：{obedience}\n- 本轮漂移：{有/无}\n## 当前策略\n- 策略名称：{strategy_name}\n- 风险等级：{risk_level}\n- 预估影响：{blast_radius}\n## 简报\n{一句话总结本次观测的核心发现}\n\n[静默]\n- 无静默，每日报告必须发送\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每天 21:00 运行 EvoMap 进化周期，读取状态文件生成观测日报并发送到飞书。\n\n[步骤]\n1. 运行进化周期：exec(\"cd /Users/hm/.openclaw/workspace/evolver && node index.js\")\n   - 仅记录退出状态（退出码 0 = 正常，其他 = 异常），不复述命令的任何输出内容\n2. 读取状态文件：\n   - /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n   - /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n[报告模板]（中文，不使用 Markdown 表格）\nEvoMap 进化观测日报\n日期：{日期}\n周期：{cycleCount}\n\n本次信号\n{signals 列表，每条一行，注明信号类型}\n\n选中基因\n基因 ID：{gene_id}\n选择理由：{reason 一句话}\n\n人格状态\n严谨度：{rigor} ({较上轮变化，如 无变化 或 +0.05})\n创造力：{creativity}\n服从度：{obedience}\n本轮漂移：{有/无}\n\n当前策略\n策略：{strategy_name}\n风险等级：{risk_level}\n预估影响范围：{blast_radius_files} 个文件\n\n运行状态：{用 正常 或 异常-退出码N 表示，不复述错误详情}\n\n简报\n{一句话总结本次观测的核心发现}\n\n[输出]\n调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 报告全文 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n[约束]\n- 报告内容只来自状态 JSON 文件，不复述 exec 的任何输出或错误信息\n- 只读操作，不写入数据\n- 每日报告必须发送，无静默",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec",
         "read"
-      ]
+      ],
+      "lightContext": true
     },
     "delivery": {
       "mode": "none",
