@@ -1,37 +1,5 @@
 [
   {
-    "id": "29e5075d-8c01-4091-b030-681eb13a57de",
-    "name": "evomap-daily-observatory",
-    "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
-    "enabled": true,
-    "createdAtMs": 1776352425962,
-    "schedule": {
-      "expr": "0 21 * * *",
-      "kind": "cron",
-      "tz": "Asia/Shanghai"
-    },
-    "sessionTarget": "isolated",
-    "wakeMode": "now",
-    "payload": {
-      "kind": "agentTurn",
-      "message": "[意图] 每天 21:00 运行 EvoMap 更新数据，生成人类可读的进化观测报告并发送到飞书。\n\n[数据]\n1. 运行 EvoMap 更新数据：exec(\"cd /Users/hm/.openclaw/workspace/evolver && node index.js\")\n2. 读取数据文件：\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n[输出]\n1. 直接输出完整观测报告（中文，禁止 Markdown 表格）\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n报告模板：\n# EvoMap 进化观测日报\n日期：{日期}\n周期：{cycleCount}\n## 本次检测到的信号\n{signals列表，每条一行，正常/异常标注颜色}\n## 选中的基因\n- 基因ID：{gene_id}\n- 选择理由：{选择原因一句话}\n## 人格状态\n- 严谨度：{rigor}（{较上轮变化}）\n- 创造力：{creativity}\n- 服从度：{obedience}\n- 本轮漂移：{有/无}\n## 当前策略\n- 策略名称：{strategy_name}\n- 风险等级：{risk_level}\n- 预估影响：{blast_radius}\n## 简报\n{一句话总结本次观测的核心发现}\n\n[静默]\n- 无静默，每日报告必须发送\n\n[约束]\n- 只读操作，不写入数据",
-      "timeoutSeconds": 300,
-      "toolsAllow": [
-        "exec",
-        "read",
-        "messaging-sender__send_to_feishu",
-        "messaging-sender__send_to_feishu_text"
-      ]
-    },
-    "delivery": {
-      "mode": "none",
-      "channel": "feishu",
-      "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
-      "accountId": "default"
-    },
-    "updatedAtMs": 1776936846454
-  },
-  {
     "id": "a9ed14ce-9076-4dd4-9424-ccf361a0001b",
     "name": "Memory Dreaming Promotion",
     "description": "[managed-by=memory-core.short-term-promotion] Promote weighted short-term recalls into MEMORY.md (limit=10, minScore=0.800, minRecallCount=3, minUniqueQueries=3, recencyHalfLifeDays=14, maxAgeDays=30).",
@@ -109,6 +77,37 @@
       "accountId": "default"
     },
     "updatedAtMs": 1776936852842
+  },
+  {
+    "id": "29e5075d-8c01-4091-b030-681eb13a57de",
+    "name": "evomap-daily-observatory",
+    "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
+    "enabled": true,
+    "createdAtMs": 1776352425962,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 9 * * *"
+    },
+    "sessionTarget": "isolated",
+    "wakeMode": "now",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "[意图] 每天 21:00 运行 EvoMap 更新数据，生成人类可读的进化观测报告并发送到飞书。\n\n[数据]\n1. 运行 EvoMap 更新数据：exec(\"cd /Users/hm/.openclaw/workspace/evolver && node index.js\")\n2. 读取数据文件：\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/evolution_solidify_state.json\n   - 读取 /Users/hm/.openclaw/workspace/evolver/memory/evolution/personality_state.json\n\n[输出]\n1. 直接输出完整观测报告（中文，禁止 Markdown 表格）\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n\n报告模板：\n# EvoMap 进化观测日报\n日期：{日期}\n周期：{cycleCount}\n## 本次检测到的信号\n{signals列表，每条一行，正常/异常标注颜色}\n## 选中的基因\n- 基因ID：{gene_id}\n- 选择理由：{选择原因一句话}\n## 人格状态\n- 严谨度：{rigor}（{较上轮变化}）\n- 创造力：{creativity}\n- 服从度：{obedience}\n- 本轮漂移：{有/无}\n## 当前策略\n- 策略名称：{strategy_name}\n- 风险等级：{risk_level}\n- 预估影响：{blast_radius}\n## 简报\n{一句话总结本次观测的核心发现}\n\n[静默]\n- 无静默，每日报告必须发送\n\n[约束]\n- 只读操作，不写入数据",
+      "timeoutSeconds": 300,
+      "toolsAllow": [
+        "exec",
+        "read",
+        "messaging-sender__send_to_feishu",
+        "messaging-sender__send_to_feishu_text"
+      ]
+    },
+    "delivery": {
+      "mode": "none",
+      "channel": "feishu",
+      "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
+      "accountId": "default"
+    },
+    "updatedAtMs": 1776948485551
   },
   {
     "id": "27020e87-3fe4-4a23-bcc1-5b7e8b4ea34f",
