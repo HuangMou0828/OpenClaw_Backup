@@ -80,7 +80,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警到飞书，正常时静默。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出巡检报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 巡检报告文本 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式：\n# myLocalRAG L5 健康巡检\n日期：{今天日期}\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n- 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill \\49207 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，输出「NO_REPLY」并结束，清理逻辑同上",
+      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警到飞书，正常时静默。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出巡检报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 巡检报告文本 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式：\n# myLocalRAG L5 健康巡检\n日期：{今天日期}\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n- 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSynthyses 为空时，输出「NO_REPLY」并结束，清理逻辑同上",
       "timeoutSeconds": 600,
       "toolsAllow": [
         "exec",
@@ -96,7 +96,7 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "updatedAtMs": 1776993190463
+    "updatedAtMs": 1776993300863
   },
   {
     "id": "29e5075d-8c01-4091-b030-681eb13a57de",
@@ -136,7 +136,8 @@
       "lastStatus": "ok",
       "lastDurationMs": 51208,
       "lastDeliveryStatus": "not-requested",
-      "consecutiveErrors": 0
+      "consecutiveErrors": 0,
+      "runningAtMs": 1776994200064
     },
     "updatedAtMs": 1776948655032
   },
@@ -226,8 +227,6 @@
   },
   {
     "id": "8dafe13c-e258-42d6-9236-0beb6d60176c",
-    "agentId": "main",
-    "sessionKey": "agent:main:main",
     "name": "mylocalrag-weekly-promotion-queue-report",
     "description": "myLocalRAG Promotion Queue 周报，每周五 17:30 汇总最值得处理的升格候选。只读报告，不自动执行任何升格操作。",
     "enabled": true,
@@ -257,22 +256,10 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "state": {
-      "nextRunAtMs": 1777023000000,
-      "lastRunAtMs": 1776420597989,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 17688,
-      "lastDeliveryStatus": "delivered",
-      "consecutiveErrors": 0,
-      "lastDelivered": true
-    },
     "updatedAtMs": 1776936859138
   },
   {
     "id": "1b1c4471-7826-4c8f-aaef-c7a42a85748a",
-    "agentId": "main",
-    "sessionKey": "agent:main:main",
     "name": "mylocalrag-openclaw-inbox-import",
     "description": "OpenClaw inbox 导入兜底任务（18:00），消费 ~/.openclaw/knowledge/inbox",
     "enabled": true,
@@ -286,7 +273,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，将同步结果发给黄谋。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若空，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n2. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/openclaw-knowledge/import -H 'Content-Type: application/json' -d '{}'\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：\n   exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n- 用 messaging-sender/send_feishu_text 发送纯文本\n- 接收人：黄谋（user:ou_3c3ad01561a915fe50731a0d71965963）\n- 格式：同步完成：新增N，归档N，失败N（有待处理候选时追加「另有 N 条升格候选待处理」）\n- 长度 ≤ 300 字\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，只输出「NO_REPLY」并结束，不调用任何发送工具\n- 当 API 返回 HTTP 403（用户额度不足）时，只输出「NO_REPLY」并结束，不调用任何发送工具",
+      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，将同步结果发给黄谋。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/openclaw-knowledge/import -H 'Content-Type: application/json' -d '{}'\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：\n   exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"同步完成：新增N，归档N，失败N（有待处理候选时追加「另有 N 条升格候选待处理」）\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"})\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，输出「NO_REPLY」并结束，清理逻辑同上\n- 当 API 返回 HTTP 403（用户额度不足）时，输出「NO_REPLY」并结束，清理逻辑同上",
       "timeoutSeconds": 180,
       "toolsAllow": [
         "exec",
@@ -302,16 +289,7 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "state": {
-      "lastRunAtMs": 1776938400016,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 155593,
-      "lastDeliveryStatus": "not-requested",
-      "consecutiveErrors": 0,
-      "nextRunAtMs": 1777024800000
-    },
-    "updatedAtMs": 1776938555609
+    "updatedAtMs": 1776994176459
   },
   {
     "id": "75af470f-d4c9-4e5b-b8ea-7d30320811f8",
@@ -359,8 +337,6 @@
   },
   {
     "id": "c0c06ba7-5bb6-40eb-8187-097e584750b3",
-    "agentId": "main",
-    "sessionKey": "session:mylocalrag-daily-report",
     "name": "mylocalrag-daily-ai-usage-report",
     "description": "myLocalRAG 每日 AI 使用日报，每天 20:30 生成当天 AI 使用复盘和 skill 候选。只读报告，不写入任何数据。",
     "enabled": true,
@@ -374,7 +350,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每天 20:30 生成 myLocalRAG AI 使用复盘报告并发送到飞书。\n\n[数据]\n1. 优先调用 GET http://127.0.0.1:3030/api/daily-summary，用 exec 工具：exec(\"curl -s http://127.0.0.1:3030/api/daily-summary\")\n2. 若 3030 服务未运行：先启动 exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒后再调用 API\n\n[输出]\n1. 直接输出完整报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 报告全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 📊 myLocalRAG 每日 AI 使用复盘 · {日期}\n## 今日概况\n## Top Queries\n## 洞察\n\n[静默]\n- 若获取失败，输出「获取日报失败，请检查服务状态」并结束，不调用发送工具\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每天 20:30 生成 myLocalRAG AI 使用复盘报告并发送到飞书。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 GET http://127.0.0.1:3030/api/daily-summary：\n   exec(\"curl -s http://127.0.0.1:3030/api/daily-summary\")\n\n[输出]\n5. 直接输出完整报告文本\n6. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 报告全文 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 📊 myLocalRAG 每日 AI 使用复盘 · {日期}\n## 今日概况\n## Top Queries\n## 洞察\n\n[结束前清理]\n7. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n8. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 若获取失败，输出「获取日报失败，请检查服务状态」并结束，清理逻辑同上",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec",
@@ -390,16 +366,7 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "state": {
-      "nextRunAtMs": 1777033800000,
-      "lastRunAtMs": 1776947400007,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 177161,
-      "lastDeliveryStatus": "not-requested",
-      "consecutiveErrors": 0
-    },
-    "updatedAtMs": 1776947577168
+    "updatedAtMs": 1776994202404
   },
   {
     "id": "2888d2cc-9251-4b8e-a83c-7ea611ba30be",
@@ -444,8 +411,6 @@
   },
   {
     "id": "4839664c-48b2-4915-8350-d97ba317c3eb",
-    "agentId": "main",
-    "sessionKey": "agent:main:main",
     "name": "mylocalrag-weekly-ai-review",
     "description": "myLocalRAG 每周 AI 使用复盘和 skill 候选，每周一 09:30 生成上周 7 天 AI 使用报告。只读报告，不写入任何数据。",
     "enabled": true,
@@ -459,7 +424,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每周一 09:30 生成 myLocalRAG AI 使用复盘和 skill 候选建议并发送到飞书。\n\n[数据]\n1. 检查 3030 服务状态：exec(\"lsof -i :3030\")。若无输出，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 POST http://127.0.0.1:3030/api/review：exec(\"curl -s -X POST http://127.0.0.1:3030/api/review -H 'Content-Type: application/json' -d '{\"recentDays\": 7, \"minRepeatedPrompt\": 2}'\")\n3. 若 repeatedPrompts 中有高频低质量 prompt，最多挑 3 条调用 POST http://127.0.0.1:3030/api/summary 进一步分析\n\n[输出]\n1. 直接输出完整周报文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 周报全文 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 🧠 myLocalRAG 每周 AI 复盘 · {日期}\n## 本周使用概况\n## 重复 Prompt 分析\n## Skill 候选建议\n\n[静默]\n- 若服务不可用，输出「服务不可用，请检查 3030 服务状态」并结束，不调用发送工具\n\n[约束]\n- 只读操作，不写入数据",
+      "message": "[意图] 每周一 09:30 生成 myLocalRAG AI 使用复盘和 skill 候选建议并发送到飞书。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 POST http://127.0.0.1:3030/api/review：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/review -H 'Content-Type: application/json' -d '{\\\"recentDays\\\": 7, \\\"minRepeatedPrompt\\\": 2}'\")\n5. 若 repeatedPrompts 中有高频低质量 prompt，最多挑 3 条调用 POST http://127.0.0.1:3030/api/summary 进一步分析\n\n[输出]\n6. 直接输出完整周报文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 周报全文 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式模板：\n# 🧠 myLocalRAG 每周 AI 复盘 · {日期}\n## 本周使用概况\n## 重复 Prompt 分析\n## Skill 候选建议\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 若服务不可用，输出「服务不可用，请检查 3030 服务状态」并结束，清理逻辑同上\n\n[约束]\n- 只读操作，不写入数据",
       "timeoutSeconds": 300,
       "toolsAllow": [
         "exec",
@@ -475,16 +440,6 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "state": {
-      "nextRunAtMs": 1777253400000,
-      "lastRunAtMs": 1776820545775,
-      "lastRunStatus": "ok",
-      "lastStatus": "ok",
-      "lastDurationMs": 46245,
-      "lastDeliveryStatus": "delivered",
-      "consecutiveErrors": 0,
-      "lastDelivered": true
-    },
-    "updatedAtMs": 1776936865010
+    "updatedAtMs": 1776994233669
   }
 ]
