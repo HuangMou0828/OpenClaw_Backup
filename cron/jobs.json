@@ -16,7 +16,18 @@
       "kind": "systemEvent",
       "text": "__openclaw_memory_core_short_term_promotion_dream__"
     },
-    "updatedAtMs": 1776924473181
+    "state": {
+      "nextRunAtMs": 1777057200000,
+      "lastRunAtMs": 1776971390924,
+      "lastRunStatus": "error",
+      "lastStatus": "error",
+      "lastDurationMs": 948832,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 1,
+      "lastError": "cron: job execution timed out",
+      "lastErrorReason": "timeout"
+    },
+    "updatedAtMs": 1776972339756
   },
   {
     "id": "daily-memory-promote",
@@ -43,7 +54,16 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "updatedAtMs": 1776946584456
+    "state": {
+      "nextRunAtMs": 1777057200000,
+      "lastRunAtMs": 1776971368911,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 22013,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0
+    },
+    "updatedAtMs": 1776971390924
   },
   {
     "id": "5afafd46-2178-4369-b459-d48965471b5c",
@@ -60,7 +80,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警到飞书，正常时静默。\n\n[数据]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")。若无输出，先启动：exec(\"cd ~/myLocalRAG/server && node index.mjs &\")，等待 3 秒\n2. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n3. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n1. 直接输出巡检报告文本\n2. 调用 messaging-sender/send_to_feishu({msg_type: \"text\", content: \"{\"text\":\"\" + 巡检报告文本 + \"\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式：\n# myLocalRAG L5 健康巡检\n日期：{今天日期}\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n- 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n长度 ≤ 300 字\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，只输出「NO_REPLY」并结束，不调用发送工具",
+      "message": "[意图] 巡检 myLocalRAG 3030 服务状态和 promotion queue，异常时推送告警到飞书，正常时静默。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 GET http://127.0.0.1:3030/api/health：exec(\"curl -s http://127.0.0.1:3030/api/health\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出巡检报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"{\\\"text\\\":\\\"\" + 巡检报告文本 + \"\\\"}\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"}) 发送\n格式：\n# myLocalRAG L5 健康巡检\n日期：{今天日期}\n## 服务状态\n- 状态：{{health.ok}}\n- workspace：{{health.workspace}}\n## Promotion Queue\n- 待处理：{{queue.approvedSyntheses.length}}\n- 进行中：{{queue.pendingSynthesis.length}}\n- 若 health.ok != true：输出「⚠️ 服务不健康，请检查」并列出具体问题\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill \\49207 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 health.ok == true 且 queue.approvedSyntheses 为空时，输出「NO_REPLY」并结束，清理逻辑同上",
       "timeoutSeconds": 600,
       "toolsAllow": [
         "exec",
@@ -76,10 +96,12 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "updatedAtMs": 1776936852842
+    "updatedAtMs": 1776993190463
   },
   {
     "id": "29e5075d-8c01-4091-b030-681eb13a57de",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "evomap-daily-observatory",
     "description": "EvoMap 每日进化观测报告，每晚21:00运行node index.js并生成人类可读的信号报告，推送到飞书",
     "enabled": true,
@@ -107,10 +129,21 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
-    "updatedAtMs": 1776948485551
+    "state": {
+      "nextRunAtMs": 1776994200000,
+      "lastRunAtMs": 1776948603824,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 51208,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0
+    },
+    "updatedAtMs": 1776948655032
   },
   {
     "id": "27020e87-3fe4-4a23-bcc1-5b7e8b4ea34f",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "ai-news-daily-brief",
     "enabled": true,
     "createdAtMs": 1776518789851,
@@ -138,6 +171,16 @@
       "channel": "discord",
       "to": "channel:1495054057931538432",
       "accountId": "main"
+    },
+    "state": {
+      "nextRunAtMs": 1776996000000,
+      "lastRunAtMs": 1776909600029,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 474068,
+      "lastDeliveryStatus": "not-delivered",
+      "consecutiveErrors": 0,
+      "lastDelivered": false
     },
     "updatedAtMs": 1776936878023
   },
@@ -170,10 +213,21 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
+    "state": {
+      "nextRunAtMs": 1777021200000,
+      "lastRunAtMs": 1776937050154,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 57049,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0
+    },
     "updatedAtMs": 1776937107203
   },
   {
     "id": "8dafe13c-e258-42d6-9236-0beb6d60176c",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "mylocalrag-weekly-promotion-queue-report",
     "description": "myLocalRAG Promotion Queue 周报，每周五 17:30 汇总最值得处理的升格候选。只读报告，不自动执行任何升格操作。",
     "enabled": true,
@@ -203,10 +257,22 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
+    "state": {
+      "nextRunAtMs": 1777023000000,
+      "lastRunAtMs": 1776420597989,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 17688,
+      "lastDeliveryStatus": "delivered",
+      "consecutiveErrors": 0,
+      "lastDelivered": true
+    },
     "updatedAtMs": 1776936859138
   },
   {
     "id": "1b1c4471-7826-4c8f-aaef-c7a42a85748a",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "mylocalrag-openclaw-inbox-import",
     "description": "OpenClaw inbox 导入兜底任务（18:00），消费 ~/.openclaw/knowledge/inbox",
     "enabled": true,
@@ -236,10 +302,21 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
+    "state": {
+      "lastRunAtMs": 1776938400016,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 155593,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0,
+      "nextRunAtMs": 1777024800000
+    },
     "updatedAtMs": 1776938555609
   },
   {
     "id": "75af470f-d4c9-4e5b-b8ea-7d30320811f8",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "todo-weekday-batch-transition",
     "description": "每周一到周五 20:20 查询今日截止的飞书项目待办并批量流转到下一节点，完成后推送飞书消息",
     "enabled": true,
@@ -269,10 +346,21 @@
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
     },
+    "state": {
+      "nextRunAtMs": 1777033200000,
+      "lastRunAtMs": 1776946800019,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 27616,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0
+    },
     "updatedAtMs": 1776946827635
   },
   {
     "id": "c0c06ba7-5bb6-40eb-8187-097e584750b3",
+    "agentId": "main",
+    "sessionKey": "session:mylocalrag-daily-report",
     "name": "mylocalrag-daily-ai-usage-report",
     "description": "myLocalRAG 每日 AI 使用日报，每天 20:30 生成当天 AI 使用复盘和 skill 候选。只读报告，不写入任何数据。",
     "enabled": true,
@@ -301,6 +389,15 @@
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
+    },
+    "state": {
+      "nextRunAtMs": 1777033800000,
+      "lastRunAtMs": 1776947400007,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 177161,
+      "lastDeliveryStatus": "not-requested",
+      "consecutiveErrors": 0
     },
     "updatedAtMs": 1776947577168
   },
@@ -333,10 +430,22 @@
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963"
     },
+    "state": {
+      "nextRunAtMs": 1777212000000,
+      "lastRunAtMs": 1776948117423,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 18551,
+      "lastDelivered": false,
+      "lastDeliveryStatus": "not-delivered",
+      "consecutiveErrors": 0
+    },
     "updatedAtMs": 1776948135974
   },
   {
     "id": "4839664c-48b2-4915-8350-d97ba317c3eb",
+    "agentId": "main",
+    "sessionKey": "agent:main:main",
     "name": "mylocalrag-weekly-ai-review",
     "description": "myLocalRAG 每周 AI 使用复盘和 skill 候选，每周一 09:30 生成上周 7 天 AI 使用报告。只读报告，不写入任何数据。",
     "enabled": true,
@@ -365,6 +474,16 @@
       "channel": "feishu",
       "to": "user:ou_3c3ad01561a915fe50731a0d71965963",
       "accountId": "default"
+    },
+    "state": {
+      "nextRunAtMs": 1777253400000,
+      "lastRunAtMs": 1776820545775,
+      "lastRunStatus": "ok",
+      "lastStatus": "ok",
+      "lastDurationMs": 46245,
+      "lastDeliveryStatus": "delivered",
+      "consecutiveErrors": 0,
+      "lastDelivered": true
     },
     "updatedAtMs": 1776936865010
   }
