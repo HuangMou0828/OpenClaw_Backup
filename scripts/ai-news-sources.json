@@ -14,18 +14,16 @@
       "category": "国内"
     },
     {
-      "name": "AIBase",
-      "url": "https://news.aibase.cn/daily",
+      "name": "机器之心",
+      "url": "https://www.jiqizhixin.com/rss",
       "proxy": false,
-      "category": "国内",
-      "note": "有时返回 HTML 而非 RSS，需注意解析"
+      "category": "国内"
     },
     {
-      "name": "量子位",
-      "url": "https://qbitai.com/feed",
-      "proxy": false,
-      "category": "国内",
-      "note": "有时返回 301，需注意重定向"
+      "name": "TechCrunch AI",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "proxy": true,
+      "category": "国外"
     },
     {
       "name": "VentureBeat",
@@ -34,16 +32,34 @@
       "category": "国外"
     },
     {
-      "name": "TechCrunch",
-      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "name": "Ars Technica AI",
+      "url": "https://arstechnica.com/ai/feed/",
       "proxy": true,
       "category": "国外"
     },
     {
-      "name": "Ars Technica",
-      "url": "https://arstechnica.com/ai/feed/",
+      "name": "MIT Technology Review AI",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
       "proxy": true,
       "category": "国外"
+    },
+    {
+      "name": "Wired AI",
+      "url": "https://www.wired.com/feed/tag/ai/latest/rss",
+      "proxy": true,
+      "category": "国外"
+    },
+    {
+      "name": "AI News",
+      "url": "https://www.artificialintelligence-news.com/feed/",
+      "proxy": true,
+      "category": "国外"
+    },
+    {
+      "name": "OpenAI Blog",
+      "url": "https://openai.com/blog/rss.xml",
+      "proxy": true,
+      "category": "官方博客"
     }
   ]
 }
