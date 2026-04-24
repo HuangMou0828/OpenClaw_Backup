@@ -39,6 +39,13 @@ def _feishu_app_secret() -> str:
 def _discord_bot_token() -> str:
     return _load_config().get("discord", {}).get("bot_token", "") or os.environ.get("DISCORD_BOT_TOKEN", "")
 
+def _discord_proxy() -> dict | None:
+    """Get Discord proxy config from config.json."""
+    proxy_url = _load_config().get("discord", {}).get("proxy")
+    if proxy_url:
+        return {"http": proxy_url, "https": proxy_url}
+    return None
+
 # ─── Feishu helpers ──────────────────────────────────────────────────────────
 
 def get_tenant_access_token(app_id: str, app_secret: str) -> str:
@@ -72,17 +79,17 @@ def send_feishu_message(token: str, receive_id: str, receive_id_type: str, msg_t
 
 # ─── Discord helpers ─────────────────────────────────────────────────────────
 
-DISCORD_PROXIES = {"http": "http://127.0.0.1:7897", "https": "http://127.0.0.1:7897"}
-
 def send_discord_message(bot_token: str, channel_id: str, content: str | None = None, embed: dict | list | None = None) -> dict:
     url = f"https://discord.com/api/v10/channels/{channel_id}/messages"
     payload = {"content": content, "embeds": None}
     if embed:
         payload["embeds"] = [embed] if isinstance(embed, dict) else embed
+
+    proxies = _discord_proxy()
     response = requests.post(
         url, json=payload,
         headers={"Authorization": f"Bot {bot_token}", "Content-Type": "application/json"},
-        proxies=DISCORD_PROXIES, verify=False, timeout=15,
+        proxies=proxies, timeout=15,
     )
     response.raise_for_status()
     data = response.json()

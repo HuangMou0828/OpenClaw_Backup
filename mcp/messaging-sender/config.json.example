@@ -4,6 +4,7 @@
     "app_secret": "your-feishu-app-secret"
   },
   "discord": {
-    "bot_token": "Bot your-discord-bot-token"
+    "bot_token": "Bot your-discord-bot-token",
+    "proxy": "http://127.0.0.1:7897"
   }
 }
