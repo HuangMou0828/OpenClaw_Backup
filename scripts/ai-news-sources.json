@@ -1,0 +1,49 @@
+{
+  "description": "AI 新闻 RSS 源列表，供 ai-news-daily-brief cron 使用",
+  "sources": [
+    {
+      "name": "36氪",
+      "url": "https://36kr.com/feed",
+      "proxy": false,
+      "category": "国内"
+    },
+    {
+      "name": "爱范儿",
+      "url": "https://www.ifanr.com/feed",
+      "proxy": false,
+      "category": "国内"
+    },
+    {
+      "name": "AIBase",
+      "url": "https://news.aibase.cn/daily",
+      "proxy": false,
+      "category": "国内",
+      "note": "有时返回 HTML 而非 RSS，需注意解析"
+    },
+    {
+      "name": "量子位",
+      "url": "https://qbitai.com/feed",
+      "proxy": false,
+      "category": "国内",
+      "note": "有时返回 301，需注意重定向"
+    },
+    {
+      "name": "VentureBeat",
+      "url": "https://venturebeat.com/feed/",
+      "proxy": true,
+      "category": "国外"
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "proxy": true,
+      "category": "国外"
+    },
+    {
+      "name": "Ars Technica",
+      "url": "https://arstechnica.com/ai/feed/",
+      "proxy": true,
+      "category": "国外"
+    }
+  ]
+}
