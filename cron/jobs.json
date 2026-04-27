@@ -36,7 +36,7 @@
     "enabled": true,
     "schedule": {
       "kind": "cron",
-      "expr": "0 3 * * *",
+      "expr": "0 18 * * *",
       "tz": "Asia/Shanghai"
     },
     "payload": {
