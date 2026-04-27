@@ -45,7 +45,8 @@
       "toolsAllow": [
         "exec"
       ],
-      "lightContext": true
+      "lightContext": true,
+      "timeoutSeconds": 1800
     },
     "sessionTarget": "isolated",
     "delivery": {
@@ -200,7 +201,7 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 每个工作日 17:00 检查当日截止的飞书任务，生成提醒并发送到飞书。\n\n[数据]\n运行 python3 /Users/hm/.openclaw/workspace/scripts/feishu-todo-refine.py，脚本输出即为报告内容。\n\n[输出]\n1. 直接输出脚本结果作为报告文本\n2. 调用 messaging-sender__send_to_feishu({content: 报告文本, msg_type: 'text', receive_id: 'ou_3c3ad01561a915fe50731a0d71965963', receive_id_type: 'open_id'})\n\n[静默]\n- 若脚本输出为空或仅含空白字符，输出「NO_REPLY」并结束，不调用发送工具",
+      "message": "[意图] 每个工作日 17:00 检查当日截止的飞书任务，生成提醒并发送到飞书。\n\n[数据]\n运行 python3 /Users/hm/.openclaw/workspace/scripts/feishu-todo-refine.py，脚本输出即为报告内容。\n\n[输出]\n1. 直接输出脚本结果作为报告文本\n2. 调用 messaging-sender__send_to_feishu({content: 报告文本, msg_type: 'text', receive_id: 'ou_3c3ad01561a915fe50731a0d71965963', receive_id_type: 'open_id'})\n\n[静默]\n- 若脚本输出为空或仅含空白字符，输出「NO_REPLY」并结束，不调用发送工具\n- 若脚本输出为「今日无截止待办 ✅」，输出「NO_REPLY」并结束，不调用发送工具",
       "toolsAllow": [
         "exec",
         "messaging-sender__send_to_feishu",
@@ -273,8 +274,8 @@
     "wakeMode": "now",
     "payload": {
       "kind": "agentTurn",
-      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，将同步结果发给黄谋。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - 等待 3 秒\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/openclaw-knowledge/import -H 'Content-Type: application/json' -d '{}'\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：\n   exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"同步完成：新增N，归档N，失败N（有待处理候选时追加「另有 N 条升格候选待处理」）\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"})\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，输出「NO_REPLY」并结束，清理逻辑同上\n- 当 API 返回 HTTP 403（用户额度不足）时，输出「NO_REPLY」并结束，清理逻辑同上",
-      "timeoutSeconds": 180,
+      "message": "[意图] 消费 ~/.openclaw/knowledge/inbox，将同步结果发给黄谋。\n\n[服务启动逻辑]\n1. 检查 3030 服务是否运行：exec(\"lsof -i :3030\")\n2. 若无输出（服务未跑），启动服务并记录自启动标记：\n   - exec(\"touch /tmp/mylocalrag_self_started.stamp\")\n   - exec(\"cd ~/myLocalRAG/server && node index.mjs &\")\n   - exec(\"for i in $(seq 1 30); do curl -s http://127.0.0.1:3030/api/health > /dev/null 2>&1 && break; sleep 1; done\")\n3. 若有输出（服务已在跑），记录原有服务标记：\n   - exec(\"touch /tmp/mylocalrag_was_running.stamp\")\n\n[数据]\n4. 调用 POST http://127.0.0.1:3030/api/openclaw-knowledge/import：\n   exec(\"curl -s -X POST http://127.0.0.1:3030/api/openclaw-knowledge/import -H 'Content-Type: application/json' -d '{}'\")\n5. 调用 GET http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0：\n   exec(\"curl -s 'http://127.0.0.1:3030/api/wiki-vault/promotion-queue?writeReport=0'\")\n\n[输出]\n6. 直接输出报告文本\n7. 调用 messaging-sender__send_to_feishu({msg_type: \"text\", content: \"同步完成：新增N，归档N，失败N（有待处理候选时追加「另有 N 条升格候选待处理」）\", receive_id: \"ou_3c3ad01561a915fe50731a0d71965963\", receive_id_type: \"open_id\"})\n长度 ≤ 300 字\n\n[结束前清理]\n8. 若存在 /tmp/mylocalrag_self_started.stamp，说明是自启动的服务，需要关闭：\n   - exec(\"kill $(lsof -ti:3030) 2>/dev/null; rm -f /tmp/mylocalrag_self_started.stamp\")\n9. 若存在 /tmp/mylocalrag_was_running.stamp，说明是原有服务，不需要关闭：\n   - exec(\"rm -f /tmp/mylocalrag_was_running.stamp\")\n\n[静默]\n- 当 imported=0 且 archived=0 且 failed=0 时，输出「NO_REPLY」并结束，清理逻辑同上\n- 当 API 返回 HTTP 403（用户额度不足）时，输出「NO_REPLY」并结束，清理逻辑同上",
+      "timeoutSeconds": 360,
       "toolsAllow": [
         "exec",
         "read",
