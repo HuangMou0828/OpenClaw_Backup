@@ -117,11 +117,11 @@
     {
       "id": "daily-memory-promote",
       "name": "每日记忆晋升 + Obsidian同步",
-      "description": "每4小时晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
+      "description": "每天 18:00 晋升一次 .learnings 到 MEMORY.md，触发后检查间隔不足则跳过",
       "enabled": true,
       "schedule": {
         "kind": "cron",
-        "expr": "0 */8 * * *",
+        "expr": "0 18 * * *",
         "tz": "Asia/Shanghai"
       },
       "payload": {
