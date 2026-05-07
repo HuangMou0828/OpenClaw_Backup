@@ -84,7 +84,8 @@
       "createdAtMs": 1776352425962,
       "schedule": {
         "kind": "cron",
-        "expr": "30 9 * * *"
+        "expr": "30 9 * * *",
+        "tz": "Asia/Shanghai"
       },
       "sessionTarget": "isolated",
       "wakeMode": "now",
