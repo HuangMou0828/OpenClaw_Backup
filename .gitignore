@@ -27,3 +27,4 @@ htmlcov/
 
 # Logs
 *.log
+jobs.json.full.bak
