@@ -1,0 +1,72 @@
+{
+  "id": "5173544",
+  "name": "base64",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "20049112",
+      "name": "PT同步到",
+      "font_class": "PTtongbudao",
+      "unicode": "e705",
+      "unicode_decimal": 59141
+    },
+    {
+      "icon_id": "24591582",
+      "name": "选中",
+      "font_class": "xuanzhong1",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "25707005",
+      "name": "删除",
+      "font_class": "shanchu11",
+      "unicode": "e646",
+      "unicode_decimal": 58950
+    },
+    {
+      "icon_id": "25984459",
+      "name": "选中",
+      "font_class": "xuanzhong11",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
+      "icon_id": "33152283",
+      "name": "选择",
+      "font_class": "xuanze",
+      "unicode": "e6d4",
+      "unicode_decimal": 59092
+    },
+    {
+      "icon_id": "36653124",
+      "name": "预告",
+      "font_class": "yugao",
+      "unicode": "e722",
+      "unicode_decimal": 59170
+    },
+    {
+      "icon_id": "39159668",
+      "name": "parent-fill",
+      "font_class": "parent-fill",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "40399833",
+      "name": "自动修改",
+      "font_class": "zidongxiugai",
+      "unicode": "e744",
+      "unicode_decimal": 59204
+    },
+    {
+      "icon_id": "41371149",
+      "name": "Vector",
+      "font_class": "Vector1",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    }
+  ]
+}

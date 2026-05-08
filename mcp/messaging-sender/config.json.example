@@ -6,5 +6,9 @@
   "discord": {
     "bot_token": "Bot your-discord-bot-token",
     "proxy": "http://127.0.0.1:7897"
+  },
+  "dot": {
+    "api_key": "dot_app_your-api-key",
+    "device_id": "XXXXXXXXXXXX"
   }
 }

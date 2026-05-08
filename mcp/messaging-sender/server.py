@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Feishu + Discord Sender MCP Server
+"""Feishu + Discord + Dot. Sender MCP Server
 
 提供统一的消息发送能力：
 - 飞书：send_to_feishu / send_feishu_text
 - Discord：send_to_discord / send_discord_text
+- Dot. 墨水屏：send_dot_text / send_dot_image
 
 凭证从同目录 config.json 读取（gitignored），不硬编码在源码里。
 """
 
+import base64
 import json
 import os
 from pathlib import Path
@@ -45,6 +47,12 @@ def _discord_proxy() -> dict | None:
     if proxy_url:
         return {"http": proxy_url, "https": proxy_url}
     return None
+
+def _dot_api_key() -> str:
+    return _load_config().get("dot", {}).get("api_key", "") or os.environ.get("DOT_API_KEY", "")
+
+def _dot_device_id() -> str:
+    return _load_config().get("dot", {}).get("device_id", "") or os.environ.get("DOT_DEVICE_ID", "")
 
 # ─── Feishu helpers ──────────────────────────────────────────────────────────
 
@@ -96,6 +104,30 @@ def send_discord_message(bot_token: str, channel_id: str, content: str | None = 
     if isinstance(data, dict) and data.get("code"):
         raise Exception(f"Discord API error: {data}")
     return data
+
+
+def _process_icon(input_val: str) -> str:
+    """
+    Dot text API 的 icon 字段只接受 base64 PNG。
+    本函数验证输入是否为有效的 base64 PNG，是则原样返回，否抛异常。
+    """
+    try:
+        data = base64.b64decode(input_val)
+    except Exception:
+        raise ValueError(f"icon 不是有效的 base64: {input_val[:40]}...")
+    if not (data[:4] == b'\x89PNG' or data[:3] == b'\xff\xd8\xff'):
+        raise ValueError(f"icon base64 不是 PNG/JPEG 图片")
+    return input_val
+
+
+def send_dot_api(path: str, body: dict, api_key: str) -> dict:
+    response = requests.post(
+        f"{DOT_BASE_URL}{path}",
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json=body, timeout=15,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 # ─── Tools ───────────────────────────────────────────────────────────────────
@@ -158,6 +190,44 @@ async def list_tools() -> list[Tool]:
                     "bot_token": {"type": "string", "description": "Discord bot token。"},
                 },
                 "required": ["text", "channel_id"],
+            },
+        ),
+        # ── Dot. ──────────────────────────────────────────────────────────────
+        Tool(
+            name="send_dot_text",
+            description="在 Dot. 墨水屏设备上显示文字内容。",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "标题文字。"},
+                    "message": {"type": "string", "description": "主要文字内容。"},
+                    "signature": {"type": "string", "description": "签名/底部文字。"},
+                    "icon": {"type": "string", "description": "图标图片。可传本地路径、URL 或 base64（自动处理为高对比黑白 PNG，尺寸为 40 的整数倍，最大 160px）。"},
+                    "link": {"type": "string", "description": "点击跳转链接。"},
+                    "device_id": {"type": "string", "description": "设备序列号（不填用 config.json 或 DOT_DEVICE_ID）。"},
+                    "api_key": {"type": "string", "description": "Dot. API key（不填用 config.json 或 DOT_API_KEY）。"},
+                    "refresh_now": {"type": "boolean", "description": "立即显示（默认 true），false 则排队不刷新。"},
+                },
+                "required": ["message"],
+            },
+        ),
+        Tool(
+            name="send_dot_image",
+            description="在 Dot. 墨水屏设备上显示 PNG 图片。",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "image_path": {"type": "string", "description": "本地 PNG 图片路径（与 image_base64 二选一）。"},
+                    "image_base64": {"type": "string", "description": "Base64 编码的 PNG 图片数据（与 image_path 二选一）。"},
+                    "link": {"type": "string", "description": "点击跳转链接。"},
+                    "border": {"type": "number", "description": "屏幕边框颜色：0=白色（默认），1=黑色。"},
+                    "dither_type": {"type": "string", "enum": ["DIFFUSION", "ORDERED", "NONE"], "description": "抖动类型（默认 DIFFUSION）。"},
+                    "dither_kernel": {"type": "string", "description": "抖动算法（默认 FLOYD_STEINBERG）。"},
+                    "device_id": {"type": "string", "description": "设备序列号（不填用 config.json 或 DOT_DEVICE_ID）。"},
+                    "api_key": {"type": "string", "description": "Dot. API key（不填用 config.json 或 DOT_API_KEY）。"},
+                    "refresh_now": {"type": "boolean", "description": "立即显示（默认 true）。"},
+                },
+                "required": [],
             },
         ),
     ]
@@ -229,6 +299,60 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             result = send_discord_message(bot_token, channel_id, content=arguments["text"])
             msg_id = result.get("id") if isinstance(result, dict) else None
             return [TextContent(type="text", text=json.dumps({"success": True, "message_id": msg_id, "channel_id": channel_id}, indent=2, ensure_ascii=False))]
+        except Exception as e:
+            return err(str(e))
+
+    # ── Dot. ──────────────────────────────────────────────────────────────────
+
+    elif name == "send_dot_text":
+        api_key = arguments.get("api_key") or _dot_api_key()
+        device_id = arguments.get("device_id") or _dot_device_id()
+        if not api_key:
+            return err("api_key required: set dot.api_key in config.json or DOT_API_KEY env")
+        if not device_id:
+            return err("device_id required: set dot.device_id in config.json or DOT_DEVICE_ID env")
+        body: dict[str, Any] = {"refreshNow": arguments.get("refresh_now", True)}
+        if arguments.get("title") is not None:
+            body["title"] = arguments["title"]
+        if arguments.get("message") is not None:
+            body["message"] = arguments["message"]
+        if arguments.get("signature") is not None:
+            body["signature"] = arguments["signature"]
+        if arguments.get("link") is not None:
+            body["link"] = arguments["link"]
+        if arguments.get("icon") is not None:
+            body["icon"] = _process_icon(arguments["icon"])
+        try:
+            result = send_dot_api(f"/api/authV2/open/device/{device_id}/text", body, api_key)
+            return [TextContent(type="text", text=json.dumps({"success": True, "device_id": device_id, "message": result.get("message", "ok")}, indent=2, ensure_ascii=False))]
+        except Exception as e:
+            return err(str(e))
+
+    elif name == "send_dot_image":
+        api_key = arguments.get("api_key") or _dot_api_key()
+        device_id = arguments.get("device_id") or _dot_device_id()
+        if not api_key:
+            return err("api_key required: set dot.api_key in config.json or DOT_API_KEY env")
+        if not device_id:
+            return err("device_id required: set dot.device_id in config.json or DOT_DEVICE_ID env")
+        # Resolve image data
+        image_b64 = arguments.get("image_base64")
+        if not image_b64 and arguments.get("image_path"):
+            image_b64 = base64.b64encode(Path(arguments["image_path"]).read_bytes()).decode()
+        if not image_b64:
+            return err("image_path or image_base64 required")
+        body = {"refreshNow": arguments.get("refresh_now", True), "image": image_b64}
+        if arguments.get("link") is not None:
+            body["link"] = arguments["link"]
+        if arguments.get("border") is not None:
+            body["border"] = arguments["border"]
+        if arguments.get("dither_type") is not None:
+            body["ditherType"] = arguments["dither_type"]
+        if arguments.get("dither_kernel") is not None:
+            body["ditherKernel"] = arguments["dither_kernel"]
+        try:
+            result = send_dot_api(f"/api/authV2/open/device/{device_id}/image", body, api_key)
+            return [TextContent(type="text", text=json.dumps({"success": True, "device_id": device_id, "message": result.get("message", "ok")}, indent=2, ensure_ascii=False))]
         except Exception as e:
             return err(str(e))
 
