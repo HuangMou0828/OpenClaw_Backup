@@ -21,6 +21,8 @@ from mcp.types import Tool, TextContent
 
 app = Server("messaging-sender")
 
+DOT_BASE_URL = "https://dot.mindreset.tech"
+
 # ─── Credential loading ───────────────────────────────────────────────────────
 
 _config = None
@@ -207,6 +209,7 @@ async def list_tools() -> list[Tool]:
                     "device_id": {"type": "string", "description": "设备序列号（不填用 config.json 或 DOT_DEVICE_ID）。"},
                     "api_key": {"type": "string", "description": "Dot. API key（不填用 config.json 或 DOT_API_KEY）。"},
                     "refresh_now": {"type": "boolean", "description": "立即显示（默认 true），false 则排队不刷新。"},
+                    "taskKey": {"type": "string", "description": "文本槽位标识，用于区分多个文本 API（默认不传则使用第一个槽位）。"},
                 },
                 "required": ["message"],
             },
@@ -228,6 +231,49 @@ async def list_tools() -> list[Tool]:
                     "refresh_now": {"type": "boolean", "description": "立即显示（默认 true）。"},
                 },
                 "required": [],
+            },
+        ),
+        # ── eink template renderer ───────────────────────────────────────────
+        Tool(
+            name="render_eink_template",
+            description=(
+                "用 JSON 模板 + 数据渲染 1-bit 墨水屏图片，返回 base64 PNG。"
+                "支持元素：text/icon/image/line/rect/qrcode/container（vbox|hbox 自动布局）。"
+                "默认尺寸 296×152（Dot. 2.66 寸），可在模板 meta 里覆盖。"
+                "模板可传入 dict、JSON 字符串，或 templates/ 目录下的模板名（如 schedule）。"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "template": {
+                        "description": "模板：JSON 对象、JSON 字符串或 templates/ 下的模板名。",
+                    },
+                    "data": {"type": "object", "description": "模板变量数据，匹配 ${var} 占位符。"},
+                    "save_path": {"type": "string", "description": "可选，把渲染结果保存到本地路径（PNG/BMP）。"},
+                    "return_base64": {"type": "boolean", "description": "是否返回 base64 PNG（默认 true）。"},
+                },
+                "required": ["template"],
+            },
+        ),
+        Tool(
+            name="send_eink_template",
+            description=(
+                "渲染模板并直接发送到 Dot. 墨水屏（一键完成）。"
+                "等同于 render_eink_template + send_dot_image 的组合。"
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "template": {"description": "模板：JSON 对象、JSON 字符串或 templates/ 下的模板名。"},
+                    "data": {"type": "object", "description": "模板变量数据。"},
+                    "link": {"type": "string", "description": "点击跳转链接。"},
+                    "border": {"type": "number", "description": "屏幕边框颜色：0=白色（默认），1=黑色。"},
+                    "device_id": {"type": "string", "description": "设备序列号（不填用 config.json）。"},
+                    "api_key": {"type": "string", "description": "Dot. API key（不填用 config.json）。"},
+                    "refresh_now": {"type": "boolean", "description": "立即显示（默认 true）。"},
+                    "save_path": {"type": "string", "description": "可选，同时把渲染结果保存到本地路径，便于调试。"},
+                },
+                "required": ["template"],
             },
         ),
     ]
@@ -322,6 +368,8 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             body["link"] = arguments["link"]
         if arguments.get("icon") is not None:
             body["icon"] = _process_icon(arguments["icon"])
+        if arguments.get("taskKey") is not None:
+            body["taskKey"] = arguments["taskKey"]
         try:
             result = send_dot_api(f"/api/authV2/open/device/{device_id}/text", body, api_key)
             return [TextContent(type="text", text=json.dumps({"success": True, "device_id": device_id, "message": result.get("message", "ok")}, indent=2, ensure_ascii=False))]
@@ -353,6 +401,70 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
         try:
             result = send_dot_api(f"/api/authV2/open/device/{device_id}/image", body, api_key)
             return [TextContent(type="text", text=json.dumps({"success": True, "device_id": device_id, "message": result.get("message", "ok")}, indent=2, ensure_ascii=False))]
+        except Exception as e:
+            return err(str(e))
+
+    # ── eink template renderer ────────────────────────────────────────────────
+
+    elif name == "render_eink_template":
+        try:
+            from eink_renderer import load_template, render, render_to_base64
+        except ImportError as e:
+            return err(f"eink_renderer import failed: {e}")
+        try:
+            tpl = load_template(arguments["template"])
+            data = arguments.get("data") or {}
+            if arguments.get("save_path"):
+                img = render(tpl, data)
+                img.save(arguments["save_path"])
+            png_b64 = render_to_base64(tpl, data) if arguments.get("return_base64", True) else None
+            return [TextContent(type="text", text=json.dumps({
+                "success": True,
+                "width": tpl.get("meta", {}).get("width", 296),
+                "height": tpl.get("meta", {}).get("height", 152),
+                "saved_to": arguments.get("save_path"),
+                "image_base64": png_b64,
+            }, indent=2, ensure_ascii=False))]
+        except Exception as e:
+            return err(f"render failed: {e}")
+
+    elif name == "send_eink_template":
+        api_key = arguments.get("api_key") or _dot_api_key()
+        device_id = arguments.get("device_id") or _dot_device_id()
+        if not api_key:
+            return err("api_key required: set dot.api_key in config.json or DOT_API_KEY env")
+        if not device_id:
+            return err("device_id required: set dot.device_id in config.json or DOT_DEVICE_ID env")
+        try:
+            from eink_renderer import load_template, render, render_to_base64
+        except ImportError as e:
+            return err(f"eink_renderer import failed: {e}")
+        try:
+            tpl = load_template(arguments["template"])
+            data = arguments.get("data") or {}
+            if arguments.get("save_path"):
+                render(tpl, data).save(arguments["save_path"])
+            image_b64 = render_to_base64(tpl, data)
+        except Exception as e:
+            return err(f"render failed: {e}")
+
+        body: dict[str, Any] = {
+            "refreshNow": arguments.get("refresh_now", True),
+            "image": image_b64,
+            "ditherType": "NONE",  # 模板已生成 1-bit，禁止 Dot 端再 dither
+        }
+        if arguments.get("link") is not None:
+            body["link"] = arguments["link"]
+        if arguments.get("border") is not None:
+            body["border"] = arguments["border"]
+        try:
+            result = send_dot_api(f"/api/authV2/open/device/{device_id}/image", body, api_key)
+            return [TextContent(type="text", text=json.dumps({
+                "success": True,
+                "device_id": device_id,
+                "saved_to": arguments.get("save_path"),
+                "message": result.get("message", "ok"),
+            }, indent=2, ensure_ascii=False))]
         except Exception as e:
             return err(str(e))
 

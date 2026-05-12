@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "width": 296,
+    "height": 152,
+    "background": "white"
+  },
+  "elements": [
+    { "type": "rect", "x": 0, "y": 0, "width": 296, "height": 24, "fill": "black" },
+    {
+      "type": "text",
+      "x": 8,
+      "y": 4,
+      "content": "今日待办 (${count})",
+      "size": 16,
+      "color": "white",
+      "fonts": ["source-han-bold", "unifont"]
+    },
+    {
+      "type": "container",
+      "layout": "vbox",
+      "x": 8,
+      "y": 32,
+      "gap": 6,
+      "children": [
+        { "type": "text", "content": "1. ${item1}", "size": 12, "max_width": 280 },
+        { "type": "text", "content": "2. ${item2}", "size": 12, "max_width": 280 },
+        { "type": "text", "content": "3. ${item3}", "size": 12, "max_width": 280 },
+        { "type": "text", "content": "4. ${item4}", "size": 12, "max_width": 280 }
+      ]
+    },
+    {
+      "type": "text",
+      "x": 8,
+      "y": 138,
+      "content": "${footer}",
+      "size": 10
+    }
+  ]
+}

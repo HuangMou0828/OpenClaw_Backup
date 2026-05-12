@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "width": 296,
+    "height": 152,
+    "background": "white"
+  },
+  "elements": [
+    {
+      "type": "text",
+      "x": 8,
+      "y": 8,
+      "content": "${title}",
+      "size": 16,
+      "fonts": ["source-han-bold", "unifont"]
+    },
+    {
+      "type": "text",
+      "x": 8,
+      "y": 40,
+      "content": "${subtitle}",
+      "size": 12,
+      "max_width": 180,
+      "line_height": 18
+    },
+    {
+      "type": "qrcode",
+      "x": 200,
+      "y": 32,
+      "size": 88,
+      "content": "${url}"
+    },
+    {
+      "type": "text",
+      "x": 8,
+      "y": 134,
+      "content": "${footer}",
+      "size": 10
+    }
+  ]
+}

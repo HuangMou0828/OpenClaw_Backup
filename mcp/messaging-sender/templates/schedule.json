@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "width": 296,
+    "height": 152,
+    "background": "white",
+    "default_fonts": ["unifont"]
+  },
+  "elements": [
+    {
+      "type": "container",
+      "layout": "hbox",
+      "x": 0,
+      "y": 0,
+      "padding": [6, 8, 4, 8],
+      "gap": 6,
+      "children": [
+        { "type": "icon", "name": "xuanzhong11", "size": 16 },
+        { "type": "text", "content": "${title}", "size": 16, "fonts": ["source-han-bold", "unifont"] }
+      ]
+    },
+    { "type": "line", "x1": 0, "y1": 28, "x2": 296, "y2": 28, "width": 2 },
+    {
+      "type": "container",
+      "layout": "vbox",
+      "x": 8,
+      "y": 36,
+      "gap": 4,
+      "children": [
+        { "type": "text", "content": "日期: ${date}", "size": 12 },
+        { "type": "text", "content": "时间: ${time}", "size": 12 },
+        { "type": "text", "content": "地点: ${location}", "size": 12, "max_width": 200 },
+        { "type": "text", "content": "${desc}", "size": 12, "max_width": 280 }
+      ]
+    },
+    {
+      "type": "text",
+      "x": 8,
+      "y": 134,
+      "content": "更新于 ${updated_at}",
+      "size": 10,
+      "color": "black"
+    }
+  ]
+}
